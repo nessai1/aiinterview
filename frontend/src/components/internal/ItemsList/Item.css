@@ -9,6 +9,10 @@
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
     transition-timing-function: cubic-bezier(.4,0,.2,1);
     transition-duration: .15s;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .item:hover {

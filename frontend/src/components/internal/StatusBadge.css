@@ -1,0 +1,17 @@
+.status-badge {
+    text-transform: lowercase;
+    border: 1px solid white;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+}
+
+.status-badge.end {
+    border-color: #4ade8069;
+    background-color: #34d39942;
+}
+
+.status-badge.active {
+    border-color: #facc1570; /* светло-жёлтый с прозрачностью */
+    background-color: #fde04742; /* жёлтый с большей прозрачностью */
+}
