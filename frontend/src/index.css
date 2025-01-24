@@ -16,11 +16,16 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  max-width: 1920px;
   padding: 20px;
+  width: 100%;
 
   display: flex;
   justify-content: center;
+}
+
+#root {
+  width: 100%;
+  max-width: 1920px;
 }
 
 :root {

@@ -5,10 +5,12 @@ import Interview from "@/components/pages/Interview.tsx";
 
 function App() {
   return (
+      <div className="content">
       <Routes>
           <Route path="*" element={<List />} />
           <Route path="/interview/:interviewId" element={<Interview />}/>
       </Routes>
+      </div>
   )
 }
 

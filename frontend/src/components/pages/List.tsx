@@ -6,7 +6,7 @@ import {Button} from "@/components/ui/button.tsx";
 const List: React.FC = () => {
     return (
         <div className={"flex flex-col w-full"}>
-            <div className={"w-full flex p-5"}>
+            <div className={"w-full flex p-5 justify-around"}>
                 <Button>Новое интервью</Button>
             </div>
             <Separator/>
