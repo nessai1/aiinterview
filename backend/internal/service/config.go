@@ -11,7 +11,7 @@ type Config struct {
 	Address string
 	OpenAI  ai.Config
 
-	DBConnectAddr string // мне лень делать декомпозицию
+	PSQLAddress string // мне лень делать декомпозицию
 }
 
 func FetchConfigFromEnv() (Config, error) {
@@ -34,7 +34,7 @@ func FetchConfigFromEnv() (Config, error) {
 	}
 
 	proxyConfig := ai.Config{ProxyURL: proxyUrl, ProxyLogin: proxyLogin, ProxyPassword: proxyPassword}
-	config := Config{Address: address, OpenAI: proxyConfig}
+	config := Config{Address: address, OpenAI: proxyConfig, PSQLAddress: psqlAddr}
 
 	return config, nil
 }
