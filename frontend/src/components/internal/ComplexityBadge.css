@@ -1,0 +1,15 @@
+.complexity-badge {
+    color: white;
+}
+
+.complexity-badge.junior {
+    background-color: #16a34a;
+}
+
+.complexity-badge.middle {
+    background-color: #f97316;
+}
+
+.complexity-badge.senior {
+    background-color: #dc2626;
+}

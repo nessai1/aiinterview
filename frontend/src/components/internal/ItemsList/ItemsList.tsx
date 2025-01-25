@@ -4,9 +4,8 @@ import Item from "./Item.tsx";
 const ItemsList: React.FC = () => {
     return (
         <div className="w-full flex flex-col">
-            <Item />
-            <Item />
-            <Item />
+            <Item complete={true} />
+            <Item complete={false} />
         </div>
     );
 }
