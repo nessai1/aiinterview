@@ -2,30 +2,23 @@ import React from "react";
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {Badge} from "@/components/ui/badge.tsx";
 import './ComplexityBadge.css';
-
-
-enum Complexity {
-    Junior = 'junior',
-    Middle = 'middle',
-    Senior = 'senior'
-}
+import {Grade} from "@/lib/interview/interview.ts";
 
 type TProps = {
-    complexity: Complexity
+    complexity: Grade
     children: React.ReactNode
 }
 
 const ComplexityBadge: React.FC<TProps> = (props: TProps)=> {
-
     let hint = '';
     switch (props.complexity) {
-        case Complexity.Junior:
+        case Grade.Junior:
             hint = 'уровень junior';
             break;
-        case Complexity.Middle:
+        case Grade.Middle:
             hint = 'уровень middle';
             break;
-        case Complexity.Senior:
+        case Grade.Senior:
             hint = 'уровень senior';
             break;
     }
@@ -48,4 +41,4 @@ const ComplexityBadge: React.FC<TProps> = (props: TProps)=> {
 }
 
 
-export {ComplexityBadge, Complexity};
+export {ComplexityBadge};

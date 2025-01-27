@@ -81,11 +81,11 @@ button:focus-visible {
     --primary-foreground: #16161a; /* Очень тёмно-серый */
     --secondary: #1a1a1a; /* Тёмно-серый */
     --secondary-foreground: #fafafa; /* Очень светло-серый */
-    --muted: #1a1a1a; /* Тёмно-серый */
+    --muted: #F3F3F9; /* Тёмно-серый */
     --muted-foreground: #818181; /* Средне-серый */
     --accent: #1a1a1a; /* Тёмно-серый */
     --accent-foreground: #fafafa; /* Очень светло-серый */
-    --destructive: #661515; /* Тёмно-красный */
+    --destructive: #D93636; /* Тёмно-красный */
     --destructive-foreground: #fafafa; /* Очень светло-серый */
     --border: #1a1a1a; /* Тёмно-серый */
     --input: #1a1a1a; /* Тёмно-серый */
