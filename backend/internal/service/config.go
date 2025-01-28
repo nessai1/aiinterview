@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Address string
 	OpenAI  ai.Config
+	IsDev   bool
 
 	PSQLAddress string // мне лень делать декомпозицию
 }
@@ -28,13 +29,19 @@ func FetchConfigFromEnv() (Config, error) {
 	proxyLogin := os.Getenv("PROXY_LOGIN")
 	proxyPassword := os.Getenv("PROXY_PASSWORD")
 
+	isDevEnv := os.Getenv("DEV")
+	isDev := false
+	if isDevEnv == "Y" {
+		isDev = true
+	}
+
 	psqlAddr := os.Getenv("PSQL_ADDR")
 	if psqlAddr == "" {
 		return Config{}, fmt.Errorf("missing env variable PSQL_ADDR")
 	}
 
 	proxyConfig := ai.Config{ProxyURL: proxyUrl, ProxyLogin: proxyLogin, ProxyPassword: proxyPassword}
-	config := Config{Address: address, OpenAI: proxyConfig, PSQLAddress: psqlAddr}
+	config := Config{Address: address, OpenAI: proxyConfig, IsDev: isDev, PSQLAddress: psqlAddr}
 
 	return config, nil
 }
