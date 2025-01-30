@@ -2,6 +2,7 @@ package storage
 
 import (
 	_ "github.com/jackc/pgx/v5/stdlib"
+	uuid "github.com/uuid6/uuid6go-proto"
 
 	"context"
 	"database/sql"
@@ -12,6 +13,12 @@ import (
 
 type PSQLStorage struct {
 	db *sql.DB
+}
+
+var uuidGenerator = uuid.UUIDv7Generator{}
+
+func generateUUID() string {
+	return uuidGenerator.Next().ToString()
 }
 
 func NewPSQLStorageFromAddr(addr string) (*PSQLStorage, error) {
@@ -51,12 +58,13 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, UserUUID string)
 	return i, nil
 }
 
-func (s *PSQLStorage) RegisterUser(ctx context.Context, userUUID string) error {
+func (s *PSQLStorage) RegisterUser(ctx context.Context) (domain.User, error) {
+	userUUID := generateUUID()
 	_, err := s.db.ExecContext(ctx, "INSERT INTO users (uuid) VALUES ($1)", userUUID)
 
 	if err != nil {
-		return fmt.Errorf("error while exec register query: %w", err)
+		return domain.User{}, fmt.Errorf("error while exec register query: %w", err)
 	}
 
-	return nil
+	return domain.User{UUID: userUUID}, nil
 }

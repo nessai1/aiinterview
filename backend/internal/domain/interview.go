@@ -2,6 +2,10 @@ package domain
 
 import "time"
 
+type User struct {
+	UUID string
+}
+
 type Interview struct {
 	Title     string
 	Timing    time.Duration
