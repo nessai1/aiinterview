@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS interview (
     title VARCHAR(255) NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS ix_interview_owner ON interview (owner);
+CREATE INDEX IF NOT EXISTS ix_interview_owner ON interview (owner_uuid);
 
 CREATE TABLE IF NOT EXISTS section (
     uuid UUID NOT NULL PRIMARY KEY,
@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS ix_section_interview ON section (interview_uuid);
 
 CREATE TABLE IF NOT EXISTS question (
     uuid UUID NOT NULL PRIMARY KEY,
-    section_uuid UUID NOT NULL PRIMARY KEY,
+    section_uuid UUID NOT NULL,
     position INT NOT NULL,
     question TEXT NOT NULL,
     answer TEXT NULL,
