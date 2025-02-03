@@ -5,6 +5,7 @@ import {Skeleton} from "@/components/ui/skeleton.tsx";
 import {useToast} from "@/hooks/use-toast.ts";
 import {ToastAction} from "@/components/ui/toast.tsx";
 import {AxiosError} from "axios";
+import {Link} from "react-router-dom";
 
 const ItemsList: React.FC = () => {
     const [items, setItems] = useState<Interview[]>()
@@ -40,7 +41,7 @@ const ItemsList: React.FC = () => {
                 </div>
                 :
                 <div>
-                    {items.map((val) => <Item interview={val} />)}
+                    {items.map((val) => <Link to={"/interview/" + val.uuid} key={val.uuid} style={{ textDecoration: "none", color: "inherit" }}><Item interview={val} /></Link>)}
                 </div>}
         </div>
     );

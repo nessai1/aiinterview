@@ -67,7 +67,12 @@ func (s *Service) buildRouter() *mux.Router {
 	apiRouter := router.PathPrefix("/api").Subrouter()
 	apiRouter.Use(s.middlewareTokenAuth)
 
-	apiRouter.HandleFunc("/interviews", s.handleAPIGetInterviewList)
+	if s.config.IsDev {
+		s.logger.Info("CORS policy disabled for API")
+		apiRouter.Use(s.corsAllowMiddleware)
+	}
+
+	apiRouter.HandleFunc("/interview/list", s.handleAPIGetInterviewList).Methods("GET")
 
 	publicRouter := router.PathPrefix("/").Subrouter()
 	publicRouter.Use(s.middlewareTokenAuth)

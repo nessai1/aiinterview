@@ -7,11 +7,13 @@ type User struct {
 }
 
 type Interview struct {
-	UUID           string        `json:"-"`
+	UUID           string        `json:"uuid"`
 	Title          string        `json:"title"`
-	Timing         time.Duration `json:"timing"`
+	Timing         time.Duration `json:"timing"` // in minutes
 	StartTimestamp time.Time     `json:"start_timestamp"`
 	Topics         []Topic       `json:"topics"`
+
+	IsComplete bool `json:"complete"` // computed -> time.Now() > StartTimestamp + Timing
 }
 
 type TopicGrade string

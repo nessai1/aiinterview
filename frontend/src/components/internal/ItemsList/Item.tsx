@@ -22,11 +22,11 @@ const Item: React.FC<TProps> = (props: TProps) => {
                 </div>
                 <div className="flex items-center mt-1 font-light">
                     <AlarmClock size={15}/>
-                    <div className="block ml-1 text-sm">30 минут</div>
+                    <div className="block ml-1 text-sm">{props.interview.timing} мин.</div>
                 </div>
                 <div className="mt-2 flex space-x-1 w-full flex-wrap">
-                    {props.interview.topics.map((val) => {
-                        return <ComplexityBadge complexity={val.grade}>{val.name}</ComplexityBadge>
+                    {props.interview.topics.map((val, index) => {
+                        return <ComplexityBadge complexity={val.grade} key={index}>{val.name}</ComplexityBadge>
                     })}
                 </div>
             </div>
