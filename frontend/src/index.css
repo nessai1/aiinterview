@@ -16,12 +16,34 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  padding: 20px;
+  padding: 20px !important;
   width: 100%;
 
   display: flex;
   justify-content: center;
 }
+
+/* ant section */
+
+.ant-picker-now-btn {
+  color: var(--chart-1) !important;
+}
+.ant-btn-primary {
+  background-color: var(--chart-1) !important; /* 🚀 Основной цвет */
+  border-color: var(--chart-1) !important;
+}
+
+.ant-btn-primary:hover {
+  background-color: #ff6f50 !important; /* 🔥 Цвет при наведении */
+  border-color: #ff6f50 !important;
+}
+
+.ant-btn-primary:active {
+  background-color: #cc4422 !important; /* 🚀 Цвет при нажатии */
+  border-color: #cc4422 !important;
+}
+
+/* ant section end */
 
 
 #root {

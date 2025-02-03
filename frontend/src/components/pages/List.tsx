@@ -3,13 +3,14 @@ import {Separator} from "@/components/ui/separator.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import { MessageCirclePlus } from "lucide-react";
 import {ItemsList} from "@/components/internal/ItemsList";
+import CreateInterviewDialog from "@/components/internal/CreateInterviewDialog.tsx";
 
 
 const List: React.FC = () => {
     return (
         <div className={"flex flex-col w-full"}>
             <div className={"w-full flex p-5 justify-around"}>
-                <Button><MessageCirclePlus /> Новое интервью</Button>
+                <CreateInterviewDialog />
             </div>
             <Separator/>
             <div>
