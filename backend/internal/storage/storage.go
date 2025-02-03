@@ -7,5 +7,5 @@ import (
 
 type Storage interface {
 	GetUserInterviewList(ctx context.Context, UserUUID string) ([]domain.Interview, error)
-	RegisterUser(ctx context.Context, UserUUID string) error
+	RegisterUser(ctx context.Context) (domain.User, error)
 }

@@ -2,7 +2,7 @@ package storage
 
 import (
 	_ "github.com/jackc/pgx/v5/stdlib"
-	uuid "github.com/uuid6/uuid6go-proto"
+	"github.com/nessai1/aiinterview/internal/utils"
 
 	"context"
 	"database/sql"
@@ -13,12 +13,6 @@ import (
 
 type PSQLStorage struct {
 	db *sql.DB
-}
-
-var uuidGenerator = uuid.UUIDv7Generator{}
-
-func generateUUID() string {
-	return uuidGenerator.Next().ToString()
 }
 
 func NewPSQLStorageFromAddr(addr string) (*PSQLStorage, error) {
@@ -52,15 +46,19 @@ func NewPSQLStorage(db *sql.DB) (*PSQLStorage, error) {
 	return &s, nil
 }
 
-func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, UserUUID string) ([]domain.Interview, error) {
+func (s *PSQLStorage) GetUserInterviewList(_ context.Context, _ string) ([]domain.Interview, error) {
 	i := make([]domain.Interview, 0)
 
 	return i, nil
 }
 
 func (s *PSQLStorage) RegisterUser(ctx context.Context) (domain.User, error) {
-	userUUID := generateUUID()
-	_, err := s.db.ExecContext(ctx, "INSERT INTO users (uuid) VALUES ($1)", userUUID)
+	userUUID, err := utils.GenerateUUIDv7()
+	if err != nil {
+		return domain.User{}, fmt.Errorf("cannot generate UUIDv7: %w", err)
+	}
+
+	_, err = s.db.ExecContext(ctx, "INSERT INTO users (uuid) VALUES ($1)", userUUID)
 
 	if err != nil {
 		return domain.User{}, fmt.Errorf("error while exec register query: %w", err)

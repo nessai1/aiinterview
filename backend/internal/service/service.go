@@ -2,7 +2,9 @@ package service
 
 import (
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/nessai1/aiinterview/internal/storage"
+	"github.com/nessai1/aiinterview/internal/utils"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -11,6 +13,8 @@ type Service struct {
 	config  Config
 	storage storage.Storage
 	logger  *zap.Logger
+
+	authService *AuthService
 }
 
 func NewService(config Config) (*Service, error) {
@@ -32,20 +36,42 @@ func NewService(config Config) (*Service, error) {
 		}
 	}
 
-	return &Service{config: config, storage: s, logger: logger}, nil
+	if config.InvitationCode == "" {
+		config.InvitationCode, err = utils.RandomStringFromCharset(5)
+		if err != nil {
+			return nil, fmt.Errorf("cannot generate random string for invitation code: %w", err)
+		}
+	}
+
+	authService := AuthService{secret: config.Secret}
+
+	return &Service{config: config, storage: s, logger: logger, authService: &authService}, nil
 }
 
 func (s *Service) ListenAndServe() error {
-	s.logger.Info("Service started", zap.Bool("dev", s.config.IsDev), zap.String("address", s.config.Address))
+	s.logger.Info("Service started", zap.Bool("dev", s.config.IsDev), zap.String("address", s.config.Address), zap.String("invitation_code", s.config.InvitationCode))
+
+	err := http.ListenAndServe(s.config.Address, s.buildRouter())
+	if err != nil {
+		return fmt.Errorf("error while listening http: %w", err)
+	}
+
 	return nil
 }
 
-func (s *Service) buildMux() *http.ServeMux {
-	mux := http.NewServeMux()
+func (s *Service) buildRouter() *mux.Router {
+	router := mux.NewRouter()
 
-	// public section
-	mux.HandleFunc("/authorize/{token}", s.handlePublicAuthorize)
+	router.HandleFunc("/join/{invitation}", s.handlePublicAuthorize).Methods("GET")
 
-	// api section
-	mux.HandleFunc("/api/interview/list", s.handleAPIGetInterviewList)
+	apiRouter := router.PathPrefix("/api").Subrouter()
+	apiRouter.Use(s.middlewareTokenAuth)
+
+	publicRouter := router.PathPrefix("/").Subrouter()
+	publicRouter.Use(s.middlewareTokenAuth)
+	publicRouter.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		writer.Write([]byte("hello world"))
+	})
+
+	return router
 }

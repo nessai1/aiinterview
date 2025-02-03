@@ -12,6 +12,9 @@ type Config struct {
 	OpenAI  ai.Config
 	IsDev   bool
 
+	Secret         string
+	InvitationCode string
+
 	PSQLAddress string // мне лень делать декомпозицию
 }
 
@@ -24,6 +27,13 @@ func FetchConfigFromEnv() (Config, error) {
 	if address == "" {
 		return Config{}, fmt.Errorf("missing env variable SERVICE_ADDR")
 	}
+
+	secret := os.Getenv("SECRET")
+	if secret == "" {
+		return Config{}, fmt.Errorf("missing env variable SECRET")
+	}
+
+	invitationCode := os.Getenv("INVITATION_CODE")
 
 	proxyUrl := os.Getenv("PROXY_URL")
 	proxyLogin := os.Getenv("PROXY_LOGIN")
@@ -41,7 +51,14 @@ func FetchConfigFromEnv() (Config, error) {
 	}
 
 	proxyConfig := ai.Config{ProxyURL: proxyUrl, ProxyLogin: proxyLogin, ProxyPassword: proxyPassword}
-	config := Config{Address: address, OpenAI: proxyConfig, IsDev: isDev, PSQLAddress: psqlAddr}
+	config := Config{
+		Address:        address,
+		Secret:         secret,
+		InvitationCode: invitationCode,
+		OpenAI:         proxyConfig,
+		IsDev:          isDev,
+		PSQLAddress:    psqlAddr,
+	}
 
 	return config, nil
 }
