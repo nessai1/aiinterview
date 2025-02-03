@@ -7,10 +7,11 @@ type User struct {
 }
 
 type Interview struct {
-	Title     string
-	Timing    time.Duration
-	StartTime time.Time
-	Topics    []Topic
+	UUID           string        `json:"-"`
+	Title          string        `json:"title"`
+	Timing         time.Duration `json:"timing"`
+	StartTimestamp time.Time     `json:"start_timestamp"`
+	Topics         []Topic       `json:"topics"`
 }
 
 type TopicGrade string
@@ -22,6 +23,6 @@ const (
 )
 
 type Topic struct {
-	Name  string
-	Grade TopicGrade
+	Name  string     `json:"name"`
+	Grade TopicGrade `json:"grade"`
 }

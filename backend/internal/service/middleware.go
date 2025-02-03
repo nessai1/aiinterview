@@ -44,7 +44,7 @@ func (s *Service) middlewareTokenAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		request.WithContext(context.WithValue(request.Context(), contextUserKey, user))
+		request = request.WithContext(context.WithValue(request.Context(), contextUserKey, user))
 		s.logger.Debug("authorized request", zap.String("user_uuid", user.UUID), zap.String("ip", request.RemoteAddr), zap.String("uri", request.RequestURI))
 		next.ServeHTTP(writer, request)
 	})
