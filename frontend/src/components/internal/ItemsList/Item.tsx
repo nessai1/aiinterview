@@ -22,7 +22,7 @@ const Item: React.FC<TProps> = (props: TProps) => {
                 </div>
                 <div className="flex items-center mt-1 font-light">
                     <AlarmClock size={15}/>
-                    <div className="block ml-1 text-sm">{props.interview.timing} мин.</div>
+                    <div className="block ml-1 text-sm">{props.interview.timing / 60} мин.</div>
                 </div>
                 <div className="mt-2 flex space-x-1 w-full flex-wrap">
                     {props.interview.topics.map((val, index) => {

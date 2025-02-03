@@ -9,7 +9,7 @@ type User struct {
 type Interview struct {
 	UUID           string        `json:"uuid"`
 	Title          string        `json:"title"`
-	Timing         time.Duration `json:"timing"` // in minutes
+	Timing         time.Duration `json:"timing"` // in seconds, cuz need to show timer HH:MM:SS
 	StartTimestamp time.Time     `json:"start_timestamp"`
 	Topics         []Topic       `json:"topics"`
 
