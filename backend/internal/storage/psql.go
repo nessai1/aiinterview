@@ -87,7 +87,7 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string)
 				Timing:         timingDuration,
 				StartTimestamp: startTimestamp,
 				Topics:         topics,
-				IsComplete:     time.Now().Unix() > startTimestamp.Add(time.Second*timingDuration).Unix(),
+				IsComplete:     time.Now().Compare(startTimestamp) >= 0,
 			}
 		}
 	}
