@@ -13,6 +13,12 @@ type Interview struct {
 	Topics    []Topic
 }
 
+type Assistant struct {
+	ID         string
+	Model      string
+	ExternalID string
+}
+
 type TopicGrade string
 
 const (

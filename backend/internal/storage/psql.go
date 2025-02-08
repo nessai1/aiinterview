@@ -66,3 +66,33 @@ func (s *PSQLStorage) RegisterUser(ctx context.Context) (domain.User, error) {
 
 	return domain.User{UUID: userUUID}, nil
 }
+
+func (s *PSQLStorage) GetAssistant(ctx context.Context, ID string) (domain.Assistant, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, external_id, model FROM assistants WHERE id = $1", ID)
+	if err != nil {
+		return domain.Assistant{}, fmt.Errorf("error while query assistant: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var assistant domain.Assistant
+		err = rows.Scan(&assistant.ID, &assistant.ExternalID, &assistant.Model)
+		if err != nil {
+			return domain.Assistant{}, fmt.Errorf("error while scan assistant: %w", err)
+		}
+
+		return assistant, nil
+	}
+
+	return domain.Assistant{}, fmt.Errorf("assistant not found")
+}
+
+func (s *PSQLStorage) SetAssistant(ctx context.Context, assistant domain.Assistant) error {
+	_, err := s.db.ExecContext(ctx, "INSERT INTO assistants (id, external_id, model) VALUES ($1, $2, $3) ON CONFLICT (id) DO UPDATE SET external_id = $2, model = $3", assistant.ID, assistant.ExternalID, assistant.Model)
+	if err != nil {
+		return fmt.Errorf("error while exec set assistant query: %w", err)
+	}
+
+	return nil
+}

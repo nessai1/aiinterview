@@ -53,3 +53,7 @@ func GenerateUUIDv7() (string, error) {
 		binary.BigEndian.Uint16(b[8:10]), // variant + random
 		b[10:]), nil
 }
+
+func StringPtr(s string) *string {
+	return &s
+}
