@@ -1,4 +1,5 @@
 type Interview = {
+    uuid: string,
     title: string,
     complete: boolean,
     timing: number,

@@ -1,9 +1,7 @@
 import {Interview} from "@/lib/interview/interview.ts";
 import axios from 'axios';
 
-type GetInterviewListResponse = {
-    data: Interview[]
-}
+type GetInterviewListResponse = Interview[]
 
 class Network {
 
@@ -22,6 +20,7 @@ class Network {
                headers: {
                    Accept: 'application/json',
                },
+               withCredentials: true,
            }
        )
 
@@ -29,7 +28,7 @@ class Network {
             throw new Error("Invalid code while get interview list: expeted 200, got " + status);
         }
 
-        return data.data;
+        return data;
     }
 }
 

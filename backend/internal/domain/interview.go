@@ -7,10 +7,13 @@ type User struct {
 }
 
 type Interview struct {
-	Title     string
-	Timing    time.Duration
-	StartTime time.Time
-	Topics    []Topic
+	UUID           string        `json:"uuid"`
+	Title          string        `json:"title"`
+	Timing         time.Duration `json:"timing"` // in seconds, cuz need to show timer HH:MM:SS
+	StartTimestamp time.Time     `json:"start_timestamp"`
+	Topics         []Topic       `json:"topics"`
+
+	IsComplete bool `json:"complete"` // computed -> time.Now() > StartTimestamp + Timing
 }
 
 type Assistant struct {
@@ -28,6 +31,6 @@ const (
 )
 
 type Topic struct {
-	Name  string
-	Grade TopicGrade
+	Name  string     `json:"name"`
+	Grade TopicGrade `json:"grade"`
 }

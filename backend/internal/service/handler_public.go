@@ -43,13 +43,18 @@ func (s *Service) handlePublicAuthorize(w http.ResponseWriter, r *http.Request) 
 			return domain.User{}, fmt.Errorf("error while create token for new user: %w", err)
 		}
 
+		sameSitePolicy := http.SameSiteLaxMode
+		if s.config.IsDev {
+			sameSitePolicy = http.SameSiteNoneMode
+		}
+
 		http.SetCookie(w, &http.Cookie{
 			Name:     jwtCookieName,
 			Value:    token,
 			Path:     "/",
 			Expires:  time.Now().Add(tokenExp),
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
+			SameSite: sameSitePolicy,
 		})
 
 		return user, nil

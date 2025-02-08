@@ -3,6 +3,7 @@ package storage
 import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nessai1/aiinterview/internal/utils"
+	"time"
 
 	"context"
 	"database/sql"
@@ -46,10 +47,57 @@ func NewPSQLStorage(db *sql.DB) (*PSQLStorage, error) {
 	return &s, nil
 }
 
-func (s *PSQLStorage) GetUserInterviewList(_ context.Context, _ string) ([]domain.Interview, error) {
-	i := make([]domain.Interview, 0)
+func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string) ([]*domain.Interview, error) {
+	req := `SELECT 
+    	i.uuid,
+    	i.title,
+    	i.start_timestamp,
+    	i.timing,
+    	s.name,
+    	s.grade
+	FROM interview i LEFT JOIN section s ON i.uuid = s.interview_uuid WHERE i.owner_uuid = $1`
 
-	return i, nil
+	rows, err := s.db.QueryContext(ctx, req, userUUID)
+	if err != nil {
+		return nil, fmt.Errorf("error while query interviews rows: %w", err)
+	}
+
+	defer rows.Close()
+
+	var uuid, title, sectionName, sectionGrade string
+	var timing int
+	var startTimestamp time.Time
+
+	interviews := make(map[string]*domain.Interview)
+	for rows.Next() {
+		err = rows.Scan(&uuid, &title, &startTimestamp, &timing, &sectionName, &sectionGrade)
+		if err != nil {
+			return nil, fmt.Errorf("cannot scan fields of interview: %w", err)
+		}
+
+		_, found := interviews[uuid]
+		if found {
+			interviews[uuid].Topics = append(interviews[uuid].Topics, domain.Topic{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)})
+		} else {
+			topics := []domain.Topic{{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)}}
+			timingDuration := time.Duration(timing)
+			interviews[uuid] = &domain.Interview{
+				UUID:           uuid,
+				Title:          title,
+				Timing:         timingDuration,
+				StartTimestamp: startTimestamp,
+				Topics:         topics,
+				IsComplete:     time.Now().Compare(startTimestamp) >= 0,
+			}
+		}
+	}
+
+	interviewsSlice := make([]*domain.Interview, 0, len(interviews))
+	for _, v := range interviews {
+		interviewsSlice = append(interviewsSlice, v)
+	}
+
+	return interviewsSlice, nil
 }
 
 func (s *PSQLStorage) RegisterUser(ctx context.Context) (domain.User, error) {
