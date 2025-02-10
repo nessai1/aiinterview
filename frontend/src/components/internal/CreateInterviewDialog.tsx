@@ -15,6 +15,7 @@ import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 
 import dayjs from "dayjs"
+import GradeList from "@/components/internal/GradeList.tsx";
 
 type TProps = {};
 
@@ -43,6 +44,9 @@ const CreateInterviewDialog: FunctionComponent<TProps> = (props) => {
                   <div className={"w-24"}>
                     <Input className={"mt-4"} name={"date"} type={"time"}></Input>
                   </div>
+              </div>
+              <div className={"mt-3"}>
+                  <GradeList/>
               </div>
           </div>
           <DialogFooter>
