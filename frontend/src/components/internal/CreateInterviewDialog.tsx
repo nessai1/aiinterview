@@ -14,7 +14,6 @@ import {MessageCirclePlus} from "lucide-react";
 import {Input} from "@/components/ui/input.tsx";
 import {Label} from "@/components/ui/label.tsx";
 
-import {TimePicker} from "antd";
 import dayjs from "dayjs"
 
 type TProps = {};
@@ -37,7 +36,14 @@ const CreateInterviewDialog: FunctionComponent<TProps> = (props) => {
               <Label className={"pl-1"}>Название интервью</Label>
               <Input className={"mt-1"} name={"title"} placeholder={"Собеседование в Google"}></Input>
 
-              <TimePicker format={timerFormat} />
+              <div className={"flex items-baseline"}>
+                  <div className={"p-2"}>
+                        <Label className={"pl-1"}>Тайминг</Label>
+                  </div>
+                  <div className={"w-24"}>
+                    <Input className={"mt-4"} name={"date"} type={"time"}></Input>
+                  </div>
+              </div>
           </div>
           <DialogFooter>
             <Button type="submit">Save changes</Button>
