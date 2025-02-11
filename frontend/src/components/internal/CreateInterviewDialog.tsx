@@ -1,4 +1,4 @@
-import React, { FunctionComponent, useState } from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -13,6 +13,7 @@ import { MessageCirclePlus } from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import GradeList from "@/components/internal/GradeList.tsx";
+import InterviewTimePicker from "@/components/internal/InterviewTimePicker.tsx";
 
 interface GradeItem {
     id: number;
@@ -53,7 +54,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
 
         const newErrors = {
             title: title.trim() === "",
-            time: time.trim() === "",
+            time: (time ?? "").trim() === "",
             grades: hasEmptyTopic || hasNoTopics
         };
 
@@ -98,19 +99,12 @@ const CreateInterviewDialog: FunctionComponent = () => {
                     {errors.title && <p className="text-red-500 text-sm">Введите название интервью</p>}
 
                     {/* Тайминг */}
-                    <div className="flex items-baseline">
+                    <div className="flex items-baseline mt-2">
                         <div className="p-2">
                             <Label className="pl-1">Тайминг</Label>
                         </div>
                         <div className="w-24">
-                            <Input
-                                className={`mt-4 ${errors.time ? "border-red-500" : ""}`}
-                                name="date"
-                                type="time"
-                                value={time}
-                                onChange={(e) => setTime(e.target.value)}
-                            />
-                            {errors.time && <p className="text-red-500 text-sm">Выберите время</p>}
+                            <InterviewTimePicker time={time} setTime={setTime}  hasError={errors.time} />
                         </div>
                     </div>
 
