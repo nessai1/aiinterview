@@ -3,6 +3,9 @@ package service
 import (
 	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/nessai1/aiinterview/internal/ai"
+	"github.com/nessai1/aiinterview/internal/interview"
+	"github.com/nessai1/aiinterview/internal/prompt"
 	"github.com/nessai1/aiinterview/internal/storage"
 	"github.com/nessai1/aiinterview/internal/utils"
 	"go.uber.org/zap"
@@ -10,11 +13,12 @@ import (
 )
 
 type Service struct {
-	config  Config
-	storage storage.Storage
-	logger  *zap.Logger
+	config Config
+	logger *zap.Logger
 
-	authService *AuthService
+	authService      *AuthService
+	interviewService *interview.Service
+	storage          storage.Storage
 }
 
 func NewService(config Config) (*Service, error) {
@@ -45,7 +49,23 @@ func NewService(config Config) (*Service, error) {
 
 	authService := AuthService{secret: config.Secret}
 
-	return &Service{config: config, storage: s, logger: logger, authService: &authService}, nil
+	// TODO: language switch
+	promptStorage, err := prompt.NewStorage("ru")
+	if err != nil {
+		return nil, fmt.Errorf("cannot create prompt storage: %w", err)
+	}
+
+	aiService, err := ai.NewService(promptStorage, logger, s, config.OpenAI)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create AI service: %w", err)
+	}
+
+	interviewService, err := interview.NewService(s, aiService, logger)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create interview service: %w", err)
+	}
+
+	return &Service{config: config, interviewService: interviewService, storage: s, logger: logger, authService: &authService}, nil
 }
 
 func (s *Service) ListenAndServe() error {

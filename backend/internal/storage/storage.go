@@ -11,4 +11,6 @@ type Storage interface {
 
 	GetAssistant(ctx context.Context, ID string) (domain.Assistant, error)
 	SetAssistant(ctx context.Context, assistant domain.Assistant) error
+
+	CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic) (domain.Interview, error)
 }

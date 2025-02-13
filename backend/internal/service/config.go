@@ -50,7 +50,12 @@ func FetchConfigFromEnv() (Config, error) {
 		return Config{}, fmt.Errorf("missing env variable PSQL_ADDR")
 	}
 
-	proxyConfig := ai.Config{ProxyURL: proxyUrl, ProxyLogin: proxyLogin, ProxyPassword: proxyPassword}
+	aiToken := os.Getenv("AI_TOKEN")
+	if aiToken == "" {
+		return Config{}, fmt.Errorf("missing env variable AI_TOKEN")
+	}
+
+	proxyConfig := ai.Config{Token: aiToken, ProxyURL: proxyUrl, ProxyLogin: proxyLogin, ProxyPassword: proxyPassword}
 	config := Config{
 		Address:        address,
 		Secret:         secret,

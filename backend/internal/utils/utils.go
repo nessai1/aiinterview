@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -56,4 +57,16 @@ func GenerateUUIDv7() (string, error) {
 
 func StringPtr(s string) *string {
 	return &s
+}
+
+func GenerateColorFromUUID(uuid string) string {
+	// Преобразуем UUID в строку и удаляем дефисы
+	uuidStr := strings.Replace(uuid, "-", "", -1)
+
+	// Используем первые 6 символов UUID для генерации RGB
+	r, g, b := int(uuidStr[0])%256, int(uuidStr[1])%256, int(uuidStr[2])%256
+
+	// Создаем строку цвета в формате HEX
+	hexColor := fmt.Sprintf("#%02X%02X%02X", r, g, b)
+	return hexColor
 }

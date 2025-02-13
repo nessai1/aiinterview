@@ -144,3 +144,65 @@ func (s *PSQLStorage) SetAssistant(ctx context.Context, assistant domain.Assista
 
 	return nil
 }
+
+func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic) (domain.Interview, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot begin transaction: %w", err)
+	}
+
+	interviewUUID, err := utils.GenerateUUIDv7()
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot generate UUIDv7: %w", err)
+	}
+
+	startTime := time.Now()
+	_, err = tx.ExecContext(ctx, "INSERT INTO interview (uuid, owner_uuid, title, start_timestamp, timing) VALUES ($1, $2, $3, $4, $5)", interviewUUID, owner.UUID, title, startTime, timing)
+	if err != nil {
+		tx.Rollback()
+		return domain.Interview{}, fmt.Errorf("error while exec insert interview query: %w", err)
+	}
+
+	sections := make([]domain.Section, 0, len(topics))
+	for i, topic := range topics {
+		sectionUUID, err := utils.GenerateUUIDv7()
+		if err != nil {
+			tx.Rollback()
+			return domain.Interview{}, fmt.Errorf("cannot generate UUIDv7 for section: %w", err)
+		}
+
+		color := utils.GenerateColorFromUUID(sectionUUID)
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO section (uuid, name, grade, position, interview_uuid, color) VALUES ($1, $2, $3, $4, $5, $6)", sectionUUID, topic.Name, topic.Grade, i, interviewUUID, color)
+
+		if err != nil {
+			tx.Rollback()
+			return domain.Interview{}, fmt.Errorf("error while exec insert section query: %w", err)
+		}
+
+		sections = append(sections, domain.Section{
+			UUID:       sectionUUID,
+			Name:       topic.Name,
+			Grade:      topic.Grade,
+			Position:   i,
+			IsStarted:  false,
+			IsComplete: false,
+			Questions:  nil,
+			Color:      color,
+		})
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot commit transaction: %w", err)
+	}
+
+	return domain.Interview{
+		UUID:           interviewUUID,
+		Title:          title,
+		Timing:         time.Duration(timing),
+		StartTimestamp: startTime,
+		IsComplete:     false,
+		Sections:       sections,
+	}, nil
+}

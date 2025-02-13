@@ -48,8 +48,10 @@ func (s *Storage) LoadPrompt(promptID string, placeholders map[string]string) (s
 	s.prompts[promptID] = prompt
 	result := prompt
 
-	for placeholder, value := range placeholders {
-		result = strings.ReplaceAll(result, "{{"+placeholder+"}}", value)
+	if placeholders != nil {
+		for placeholder, value := range placeholders {
+			result = strings.ReplaceAll(result, "{{"+placeholder+"}}", value)
+		}
 	}
 
 	return result, nil
