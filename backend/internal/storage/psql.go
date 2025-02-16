@@ -77,16 +77,16 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string)
 
 		_, found := interviews[uuid]
 		if found {
-			interviews[uuid].Topics = append(interviews[uuid].Topics, domain.Topic{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)})
+			interviews[uuid].Sections = append(interviews[uuid].Sections, domain.Section{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)})
 		} else {
-			topics := []domain.Topic{{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)}}
+			sections := []domain.Section{{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)}}
 			timingDuration := time.Duration(timing)
 			interviews[uuid] = &domain.Interview{
 				UUID:           uuid,
 				Title:          title,
 				Timing:         timingDuration,
 				StartTimestamp: startTimestamp,
-				Topics:         topics,
+				Sections:       sections,
 				IsComplete:     time.Now().Compare(startTimestamp) >= 0,
 			}
 		}
