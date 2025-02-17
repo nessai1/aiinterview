@@ -55,6 +55,7 @@ func (s *Service) handlePublicAuthorize(w http.ResponseWriter, r *http.Request) 
 			Expires:  time.Now().Add(tokenExp),
 			HttpOnly: true,
 			SameSite: sameSitePolicy,
+			Secure:   true,
 		})
 
 		return user, nil
