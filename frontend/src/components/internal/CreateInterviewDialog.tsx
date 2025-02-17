@@ -9,7 +9,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 
-import { MessageCirclePlus } from "lucide-react";
+import {AlarmClock, MessageCirclePlus} from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import GradeList from "@/components/internal/GradeList.tsx";
@@ -28,7 +28,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
     const [grades, setGrades] = useState<GradeItem[]>([{ id: Date.now(), topic: "", grade: "Junior" }]);
 
     const [isLoad, setLoad] = useState(false);
-    const [errors, setErrors] = useState<{ title?: boolean; time?: boolean; grades?: boolean }>({});
+    const [errors, setErrors] = useState<{ title?: boolean; time?: string; grades?: boolean }>({});
 
     // Функция обновления темы и грейда
     const updateGradeItem = (id: number, field: keyof GradeItem, value: string) => {
@@ -56,14 +56,33 @@ const CreateInterviewDialog: FunctionComponent = () => {
 
         const newErrors = {
             title: title.trim() === "",
-            time: (time ?? "").trim() === "",
+            time: "",
             grades: hasEmptyTopic || hasNoTopics
         };
+
+        if (time.length <= 0)
+        {
+            newErrors.time = "Введите время на собеседование (в минутах)";
+        }
+        else
+        {
+            const numTime = parseInt(time);
+            if (numTime < 5)
+            {
+                newErrors.time = "Минимальное время собеседования - 5 минут"
+            }
+            else if ((numTime / grades.length) < 5)
+            {
+                const gl = grades.length;
+                const mt = gl * 5;
+                newErrors.time = `На каждую тему должно быть выделено не менее 5 минут. Количество тем - ${gl}, значит минимальный размер собеседования - ${mt} минут`;
+            }
+        }
 
         setErrors(newErrors);
 
         // Если есть ошибки - не отправляем
-        if (Object.values(newErrors).some(error => error)) {
+        if (newErrors.grades || newErrors.title || newErrors.time.length > 0) {
             return;
         }
 
@@ -104,13 +123,26 @@ const CreateInterviewDialog: FunctionComponent = () => {
                     {errors.title && <p className="text-red-500 text-sm">Введите название интервью</p>}
 
                     {/* Тайминг */}
-                    <div className="flex items-baseline mt-2">
-                        <div className="p-2">
-                            <Label className="pl-1">Тайминг</Label>
+                    <div className="mt-5 mb-5">
+                        <div className="flex items-center">
+                            <div className="p-2">
+                                <Label className="pl-1 flex"><AlarmClock size={15}/>
+                                    <div className={"ml-2"}>Тайминг:</div>
+                                </Label>
+                            </div>
+                            <Input
+                                type="number"
+                                className={`w-20 h-8 mr-2 ${errors.time ? "border-red-500" : ""}`}
+                                onChange={(e) => setTime(e.target.value)}
+                            ></Input>
+                            <div>
+                                минут
+                            </div>
+                            <div className={"ml-4 text-xs text-zinc-600"}>на одну тему должно быть выделенно минимум 5
+                                минут
+                            </div>
                         </div>
-                        <div className="w-24">
-                            <InterviewTimePicker disabled={isLoad} time={time} setTime={setTime}  hasError={errors.time} />
-                        </div>
+                        {(errors.time?.length ?? 0) > 0 && <p className="text-red-500 text-sm mt-1">{errors.time}</p>}
                     </div>
 
                     {/* Список тем */}

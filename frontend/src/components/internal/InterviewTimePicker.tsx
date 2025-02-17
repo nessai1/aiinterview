@@ -27,7 +27,7 @@ export default function InterviewTimePicker({ time, setTime, hasError, disabled 
                         hasError ? "border-red-500" : "border-gray-300"
                     }`}
                 />
-                <AlarmClock size={15}/>
+
             </div>
             {hasError && <p className="text-red-500 text-xs mt-1">Выберите время</p>}
         </div>
