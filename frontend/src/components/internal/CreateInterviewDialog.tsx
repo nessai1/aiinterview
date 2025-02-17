@@ -132,6 +132,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
                             </div>
                             <Input
                                 type="number"
+                                disabled={isLoad}
                                 className={`w-20 h-8 mr-2 ${errors.time ? "border-red-500" : ""}`}
                                 onChange={(e) => setTime(e.target.value)}
                             ></Input>
