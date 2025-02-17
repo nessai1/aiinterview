@@ -30,7 +30,7 @@ func NewStorage(lang string) (*Storage, error) {
 		return nil, fmt.Errorf("prompt dir '%s' is not a directory", dir)
 	}
 
-	return &Storage{lang: lang, promptDir: os.DirFS(dir)}, nil
+	return &Storage{lang: lang, promptDir: os.DirFS(dir), prompts: map[string]string{}}, nil
 }
 
 func (s *Storage) LoadPrompt(promptID string, placeholders map[string]string) (string, error) {
