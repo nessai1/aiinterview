@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import GradeList from "@/components/internal/GradeList.tsx";
 import InterviewTimePicker from "@/components/internal/InterviewTimePicker.tsx";
+import { Loader2 } from "lucide-react";
 
 interface GradeItem {
     id: number;
@@ -26,6 +27,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
     const [time, setTime] = useState("");
     const [grades, setGrades] = useState<GradeItem[]>([{ id: Date.now(), topic: "", grade: "Junior" }]);
 
+    const [isLoad, setLoad] = useState(false);
     const [errors, setErrors] = useState<{ title?: boolean; time?: boolean; grades?: boolean }>({});
 
     // Функция обновления темы и грейда
@@ -64,6 +66,8 @@ const CreateInterviewDialog: FunctionComponent = () => {
         if (Object.values(newErrors).some(error => error)) {
             return;
         }
+
+        setLoad(true);
 
         // Заглушка запроса (здесь можно сделать реальный API вызов)
         console.log("Отправка данных:", {
@@ -121,7 +125,10 @@ const CreateInterviewDialog: FunctionComponent = () => {
                 </div>
 
                 <DialogFooter>
-                    <Button type="submit" onClick={handleSubmit}>Создать</Button>
+                    <Button disabled={isLoad}  type="submit" onClick={handleSubmit}>
+                        {isLoad ? <Loader2 className="animate-spin" /> : ""}
+                        Создать
+                    </Button>
                 </DialogFooter>
 
             </DialogContent>

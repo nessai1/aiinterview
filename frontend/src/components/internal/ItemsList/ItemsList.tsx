@@ -41,7 +41,10 @@ const ItemsList: React.FC = () => {
                 </div>
                 :
                 <div>
-                    {items.map((val) => <Link to={"/interview/" + val.uuid} key={val.uuid} style={{ textDecoration: "none", color: "inherit" }}><Item interview={val} /></Link>)}
+                    { items.length > 0
+                        ? items.map((val) => <Link to={"/interview/" + val.uuid} key={val.uuid} style={{ textDecoration: "none", color: "inherit" }}><Item interview={val} /></Link>)
+                        : <h3 className={"mt-10"}>Тут пока ничего нет :)</h3>
+                    }
                 </div>}
         </div>
     );
