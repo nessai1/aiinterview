@@ -2,8 +2,11 @@ package storage
 
 import (
 	"context"
+	"fmt"
 	"github.com/nessai1/aiinterview/internal/domain"
 )
+
+var ErrNotFound = fmt.Errorf("entity not found")
 
 type Storage interface {
 	GetUserInterviewList(ctx context.Context, UserUUID string) ([]*domain.Interview, error)

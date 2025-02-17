@@ -133,7 +133,7 @@ func (s *PSQLStorage) GetAssistant(ctx context.Context, ID string) (domain.Assis
 		return assistant, nil
 	}
 
-	return domain.Assistant{}, fmt.Errorf("assistant not found")
+	return domain.Assistant{}, ErrNotFound
 }
 
 func (s *PSQLStorage) SetAssistant(ctx context.Context, assistant domain.Assistant) error {

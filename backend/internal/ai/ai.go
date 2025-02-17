@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/nessai1/aiinterview/internal/domain"
 	"github.com/nessai1/aiinterview/internal/prompt"
@@ -68,8 +69,10 @@ func NewService(promptStorage *prompt.Storage, logger *zap.Logger, st storage.St
 	}
 
 	assistant, err := st.GetAssistant(context.TODO(), assistantID)
-	if err != nil {
+	if err != nil && !errors.Is(storage.ErrNotFound, err) {
 		return nil, fmt.Errorf("cannot retrieve assistant from storage: %w", err)
+	} else if errors.Is(storage.ErrNotFound, err) {
+		assistant = domain.Assistant{ID: assistantID, Model: modelID, ExternalID: ""}
 	}
 
 	instructions, err := promptStorage.LoadPrompt(promptAssistantIntroduction, nil)
