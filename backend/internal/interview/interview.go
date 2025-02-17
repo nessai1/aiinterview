@@ -15,7 +15,7 @@ type Service struct {
 	logger    *zap.Logger
 }
 
-const ErrSmallTiming = fmt.Errorf("timing is too small: one section >= 5 minutes")
+var ErrSmallTiming = fmt.Errorf("timing is too small: one section >= 5 minutes")
 
 func NewService(str storage.Storage, aiService *ai.Service, logger *zap.Logger) (*Service, error) {
 	s := Service{
