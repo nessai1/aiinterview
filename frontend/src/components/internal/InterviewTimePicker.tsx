@@ -7,14 +7,16 @@ import {AlarmClock} from "lucide-react";
 type TProps = {
     time: string,
     setTime: (time: string|null) => void,
-    hasError: boolean
+    hasError: boolean,
+    disabled: boolean,
 };
 
-export default function InterviewTimePicker({ time, setTime, hasError }: TProps) {
+export default function InterviewTimePicker({ time, setTime, hasError, disabled }: TProps) {
     return (
         <div className="w-sm">
             <div className={"flex items-center"}>
                 <TimePicker
+                    disabled={disabled}
                     onChange={setTime}  // Обновляет состояние времени
                     value={time}         // Текущее значение времени
                     disableClock={true}  // Убирает выбор через аналоговые часы

@@ -5,12 +5,13 @@ import { X } from "lucide-react"; // Иконка крестика
 
 const GRADE_OPTIONS = ["Junior", "Middle", "Senior"];
 
-export default function GradeList({ grades, updateGradeItem, addGradeItem, removeGradeItem }) {
+export default function GradeList({ grades, updateGradeItem, addGradeItem, removeGradeItem, disabled }) {
     return (
         <div className="space-y-2">
             {grades.map((item) => (
                 <div key={item.id} className="flex gap-4 items-center">
                     <Input
+                        disabled={disabled}
                         type="text"
                         placeholder="Введите тему"
                         value={item.topic}
@@ -26,20 +27,20 @@ export default function GradeList({ grades, updateGradeItem, addGradeItem, remov
                         </SelectTrigger>
                         <SelectContent>
                             {GRADE_OPTIONS.map((grade) => (
-                                <SelectItem key={grade} value={grade}>
+                                <SelectItem disabled={disabled} key={grade} value={grade}>
                                     {grade}
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                     {grades.length > 1 && (
-                        <Button variant="ghost" size="icon" onClick={() => removeGradeItem(item.id)}>
+                        <Button disabled={disabled} variant="ghost" size="icon" onClick={() => removeGradeItem(item.id)}>
                             <X className="w-5 h-5 text-red-500" />
                         </Button>
                     )}
                 </div>
             ))}
-            <Button onClick={addGradeItem} className="w-full mt-2">
+            <Button disabled={disabled} onClick={addGradeItem} className="w-full mt-2">
                 + Добавить тему
             </Button>
         </div>

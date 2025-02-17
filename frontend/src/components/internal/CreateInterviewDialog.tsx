@@ -94,6 +94,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
                     {/* Название интервью */}
                     <Label className="pl-1">Название интервью</Label>
                     <Input
+                        disabled={isLoad}
                         className={`mt-1 ${errors.title ? "border-red-500" : ""}`}
                         name="title"
                         placeholder="Собеседование в Google"
@@ -108,13 +109,14 @@ const CreateInterviewDialog: FunctionComponent = () => {
                             <Label className="pl-1">Тайминг</Label>
                         </div>
                         <div className="w-24">
-                            <InterviewTimePicker time={time} setTime={setTime}  hasError={errors.time} />
+                            <InterviewTimePicker disabled={isLoad} time={time} setTime={setTime}  hasError={errors.time} />
                         </div>
                     </div>
 
                     {/* Список тем */}
                     <div className="mt-3">
                         <GradeList
+                            disabled={isLoad}
                             grades={grades}
                             updateGradeItem={updateGradeItem}
                             addGradeItem={addGradeItem}
