@@ -13,8 +13,9 @@ import {AlarmClock, MessageCirclePlus} from "lucide-react";
 import { Input } from "@/components/ui/input.tsx";
 import { Label } from "@/components/ui/label.tsx";
 import GradeList from "@/components/internal/GradeList.tsx";
-import InterviewTimePicker from "@/components/internal/InterviewTimePicker.tsx";
 import { Loader2 } from "lucide-react";
+import {Topic} from "@/lib/interview/interview.ts";
+import {useToast} from "@/hooks/use-toast.ts";
 
 interface GradeItem {
     id: number;
@@ -25,10 +26,11 @@ interface GradeItem {
 const CreateInterviewDialog: FunctionComponent = () => {
     const [title, setTitle] = useState("");
     const [time, setTime] = useState("");
-    const [grades, setGrades] = useState<GradeItem[]>([{ id: Date.now(), topic: "", grade: "Junior" }]);
+    const [grades, setGrades] = useState<GradeItem[]>([{ id: Date.now(), topic: "", grade: "junior" }]);
 
     const [isLoad, setLoad] = useState(false);
     const [errors, setErrors] = useState<{ title?: boolean; time?: string; grades?: boolean }>({});
+    const { toast } = useToast();
 
     // Функция обновления темы и грейда
     const updateGradeItem = (id: number, field: keyof GradeItem, value: string) => {
@@ -39,7 +41,7 @@ const CreateInterviewDialog: FunctionComponent = () => {
 
     // Функция добавления новой темы
     const addGradeItem = () => {
-        setGrades([...grades, { id: Date.now(), topic: "", grade: "Junior" }]);
+        setGrades([...grades, { id: Date.now(), topic: "", grade: "junior" }]);
     };
 
     // Функция удаления темы
@@ -94,6 +96,21 @@ const CreateInterviewDialog: FunctionComponent = () => {
             time,
             grades
         });
+
+        window.network.createInterview({
+            title,
+            timing: parseInt(time),
+            topics: grades.map(({ topic, grade }): Topic => ({name: topic, grade: grade}) as Topic)
+        }).then((resp) => {
+            window.location.href = `/interview/${resp.uuid}`;
+        }).catch((err) => {
+            setLoad(false);
+            toast({
+                title: 'Упс! Интервью не создалось :(',
+                description: `Ошибка сети: [${err.code}] ${err.message}`,
+                variant: "destructive",
+            });
+        })
 
         // Закрыть диалог (если требуется)
     };

@@ -14,6 +14,7 @@ const ItemsList: React.FC = () => {
 
     const retry = () => {
         network.getInterviewList().then((interviews: Interview[]) => {
+            console.log(interviews);
             setItems(interviews);
         }).catch((err: AxiosError) => {
             toast({

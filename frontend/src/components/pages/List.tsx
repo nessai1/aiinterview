@@ -1,7 +1,5 @@
 import React from "react";
 import {Separator} from "@/components/ui/separator.tsx";
-import {Button} from "@/components/ui/button.tsx";
-import { MessageCirclePlus } from "lucide-react";
 import {ItemsList} from "@/components/internal/ItemsList";
 import CreateInterviewDialog from "@/components/internal/CreateInterviewDialog.tsx";
 

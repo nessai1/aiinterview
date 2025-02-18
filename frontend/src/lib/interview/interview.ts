@@ -3,11 +3,27 @@ type Interview = {
     title: string,
     complete: boolean,
     timing: number,
-    topics: Topic[]
-}
+    sections: Section[],
+};
 
 type Topic = {
     name: string
+    grade: Grade
+}
+
+type Section = {
+    uuid: string,
+    name: string,
+    complete: boolean,
+    questions: Question[]
+    position: number,
+    grade: Grade,
+}
+
+type Question = {
+    uuid: string,
+    text: string,
+    answer: string,
     grade: Grade
 }
 
@@ -18,7 +34,11 @@ enum Grade {
 }
 
 export {
-    Interview,
-    Topic,
     Grade
+};
+
+export type {
+    Interview,
+    Topic
 }
+

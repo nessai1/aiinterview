@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react"; // Иконка крестика
 
-const GRADE_OPTIONS = ["Junior", "Middle", "Senior"];
+const GRADE_OPTIONS = ["junior", "middle", "senior"];
 
 export default function GradeList({ grades, updateGradeItem, addGradeItem, removeGradeItem, disabled }) {
     return (

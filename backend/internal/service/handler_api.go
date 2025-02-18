@@ -64,7 +64,6 @@ func (s *Service) handleAPICreateInterview(w http.ResponseWriter, r *http.Reques
 
 		return
 	}
-
 	i, err := s.interviewService.CreateInterview(r.Context(), user, req.Title, req.Timing, req.Topics)
 	if err != nil {
 		s.logger.Error("Error while create interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
@@ -82,4 +81,12 @@ func (s *Service) handleAPICreateInterview(w http.ResponseWriter, r *http.Reques
 	}
 
 	_, err = w.Write(jsoned)
+	if err != nil {
+		s.logger.Error("Cannot write result to user", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	s.logger.Debug("User create new interview", zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI), zap.String("title", req.Title), zap.Int("timing", req.Timing), zap.Any("topics", req.Topics))
 }

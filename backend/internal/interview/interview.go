@@ -27,13 +27,13 @@ func NewService(str storage.Storage, aiService *ai.Service, logger *zap.Logger) 
 	return &s, nil
 }
 
-func (s *Service) CreateInterview(ctx context.Context, user domain.User, title string, timing int, topics []domain.Topic) (domain.Interview, error) {
-	mins := timing / 60
-	if len(topics)*5 < mins {
+func (s *Service) CreateInterview(ctx context.Context, user domain.User, title string, timingMins int, topics []domain.Topic) (domain.Interview, error) {
+
+	if len(topics)*5 > timingMins {
 		return domain.Interview{}, ErrSmallTiming
 	}
 
-	interview, err := s.storage.CreateInterview(ctx, user, title, timing, topics)
+	interview, err := s.storage.CreateInterview(ctx, user, title, timingMins*60, topics)
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("cannot create new interview in storage: %w", err)
 	}

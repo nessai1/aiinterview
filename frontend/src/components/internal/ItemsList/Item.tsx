@@ -27,7 +27,7 @@ const Item: React.FC<TProps> = (props: TProps) => {
                     <div className="block ml-1 text-sm">{timer} мин.</div>
                 </div>
                 <div className="mt-2 flex space-x-1 w-full flex-wrap">
-                    {props.interview.topics.map((val, index) => {
+                    {props.interview.sections.map((val, index) => {
                         return <ComplexityBadge complexity={val.grade} key={index}>{val.name}</ComplexityBadge>
                     })}
                 </div>

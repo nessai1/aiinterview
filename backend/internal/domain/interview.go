@@ -15,7 +15,7 @@ type Interview struct {
 	IsComplete bool `json:"complete"` // computed -> time.Now() > StartTimestamp + Timing
 
 	Summarize Summarize `json:"summarize,omitempty"`
-	Sections  []Section
+	Sections  []Section `json:"sections"`
 }
 
 type Section struct {
