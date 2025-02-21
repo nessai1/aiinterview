@@ -1,0 +1,18 @@
+.questionBlock {
+    background: rgba(9, 9, 11, 0.8); /* Полупрозрачный черный */
+    backdrop-filter: blur(10px); /* Эффект размытия */
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 12px; /* Закругленные углы */
+    padding: 16px;
+    color: white; /* Белый текст */
+    font-size: 14px;
+    width: 100%;
+    margin: 20px auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Лёгкая тень */
+}
+
+.questionHeader {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}

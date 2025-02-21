@@ -1,6 +1,8 @@
 import React from "react";
-import {useParams} from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import Chat from "@/components/internal/chat/Chat.tsx";
+import {ChevronLeft} from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 
 
@@ -13,7 +15,14 @@ const Interview: React.FC = () => {
     }
 
     return (
-        <><Chat interviewId={interviewId} /></>
+        <>
+            <Link to={"/"} style={{ textDecoration: "none", color: "inherit"}}>
+                <Button variant="outline" size="icon" className="mb-2">
+                    <ChevronLeft />
+                </Button>
+            </Link>
+            <Chat interviewId={interviewId} />
+        </>
     );
 }
 
