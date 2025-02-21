@@ -15,6 +15,7 @@ type Section = {
     uuid: string,
     name: string,
     complete: boolean,
+    color: string,
     questions: Question[]
     position: number,
     grade: Grade,
@@ -24,6 +25,7 @@ type Question = {
     uuid: string,
     text: string,
     answer: string,
+    feedback: string,
     grade: Grade
 }
 
@@ -39,6 +41,7 @@ export {
 
 export type {
     Interview,
-    Topic
+    Topic,
+    Section
 }
 
