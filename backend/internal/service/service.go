@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nessai1/aiinterview/internal/ai"
 	"github.com/nessai1/aiinterview/internal/interview"
+	"github.com/nessai1/aiinterview/internal/message"
 	"github.com/nessai1/aiinterview/internal/prompt"
 	"github.com/nessai1/aiinterview/internal/storage"
 	"github.com/nessai1/aiinterview/internal/utils"
@@ -19,6 +20,8 @@ type Service struct {
 	authService      *AuthService
 	interviewService *interview.Service
 	storage          storage.Storage
+
+	messageParser *message.Parser
 }
 
 func NewService(config Config) (*Service, error) {
@@ -65,7 +68,9 @@ func NewService(config Config) (*Service, error) {
 		return nil, fmt.Errorf("cannot create interview service: %w", err)
 	}
 
-	return &Service{config: config, interviewService: interviewService, storage: s, logger: logger, authService: &authService}, nil
+	messageParser := message.NewParser(message.NewHighlighter())
+
+	return &Service{config: config, interviewService: interviewService, storage: s, logger: logger, authService: &authService, messageParser: messageParser}, nil
 }
 
 func (s *Service) ListenAndServe() error {
@@ -95,6 +100,7 @@ func (s *Service) buildRouter() *mux.Router {
 
 	apiRouter.HandleFunc("/interview/list", s.handleAPIGetInterviewList).Methods("GET")
 	apiRouter.HandleFunc("/interview", s.handleAPICreateInterview).Methods("POST", "OPTIONS")
+	apiRouter.HandleFunc("/preview", s.handleAPIPreviewMessage).Methods("POST", "OPTIONS")
 
 	publicRouter := router.PathPrefix("/").Subrouter()
 	publicRouter.Use(s.middlewareTokenAuth)

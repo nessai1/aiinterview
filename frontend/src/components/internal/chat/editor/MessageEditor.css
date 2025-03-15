@@ -1,0 +1,122 @@
+.editor {
+    border: 1px solid var(--border-color, rgb(61, 68, 77));
+    border-radius: 5px;
+
+    width: 100%;
+
+
+    --color-muted: rgb(145, 152, 161);
+    --color-active: rgb(240, 246, 252);
+    --color-hiht: rgb(187 192 200 / 36%);
+
+    --border-color: rgb(61, 68, 77);
+    --bg-dark: rgb(13, 17, 23);
+
+    background-color: var(--bg-dark);
+}
+
+.tab-list {
+    background-color: rgb(21, 27, 35);
+    border-radius: 5px;
+    color: rgb(145, 152, 161);
+    height: 38px;
+    border-bottom: 1px solid var(--border-color);
+
+    display: flex;
+    justify-content: space-between;
+}
+
+.tab-list .react-tabs__tab--selected {
+    top: -1px;
+    height: 39px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-dark);
+    border-bottom: 1px solid var(--bg-dark);
+    color: var(--color-active) !important;
+}
+
+.tab-list .react-tabs__tab--selected::after,
+.tab-list .react-tabs__tab--selected:active::after {
+   content: none !important;
+}
+
+
+.tab-list .react-tabs__tab {
+    color: var(--color-muted);
+    transition: color .2s cubic-bezier(0.3, 0, 0.5, 1);
+}
+
+.tab-list .react-tabs__tab:active {
+    color: var(--color-muted);
+}
+
+.tab-list .react-tabs__tab:hover {
+    color: var(--color-active);
+}
+
+.comment-input {
+    display: block;
+    width: 100%;
+    min-height: 102px;
+    padding: 0.5rem;
+    line-height: 1.5;
+    resize: vertical;
+    background: none;
+    border: 0;
+}
+
+.comment-input:focus-visible {
+    border: 0;
+    outline: 0;
+    box-shadow: none;
+}
+
+.comment-input-wrapper:focus-within {
+    border-color: transparent;
+    outline: 2px #1f6feb solid;
+    outline-offset: -1px;
+    box-shadow: none;
+}
+
+.comment-input-wrapper {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 8px 0;
+    overflow: hidden;
+    border: 1px solid #3d444d;
+    border-radius: 6px;
+}
+
+.action-list {
+    display: flex;
+    margin-right: 3px;
+    align-items: center;
+}
+
+.divider {
+    border: none;
+    border-left: 1px solid #3d444db3;
+
+    float: left;
+    height: 1rem;
+    margin: 0 0.5rem;
+    display: block;
+}
+
+.editor-bottom {
+    padding-bottom: 8px;
+    padding-left: 3px;
+    color: var(--color-hiht);
+    font-size: 12px;
+}
+
+.editor-bottom svg {
+    fill: var(--color-hiht);
+    display: inline-block;
+    padding-bottom: 2px;
+}
+
+.editor-active {
+    padding: 0 8px;
+}

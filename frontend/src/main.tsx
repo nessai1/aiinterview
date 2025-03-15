@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 import {BrowserRouter} from "react-router-dom";
 import {Network} from "@/lib/network/network.ts";
+import './code-highlight.css';
 
 
 let addr = '';

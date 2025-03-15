@@ -60,6 +60,24 @@ class Network {
 
         return data;
     }
+
+    async previewMessage(message: string): Promise<string> {
+        const {data, status} = await axios.post<string>(
+            this.serviceUrl + '/api/preview',
+            message,
+            {
+                withCredentials: true,
+            }
+        )
+
+        console.log(data);
+
+        if (status !== 200) {
+            throw new Error("Invalid code while preview message: expeted 200, got " + status);
+        }
+
+        return data;
+    }
 }
 
 export {Network};
