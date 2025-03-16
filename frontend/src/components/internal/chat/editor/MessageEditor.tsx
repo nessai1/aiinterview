@@ -32,6 +32,7 @@ const MessageEditor: FunctionComponent<TProps> = (props: TProps) => {
     const [isLoading, setLoading] = useState<boolean>(false);
 
     const [editor, setEditor] = useState<Editor | null>(null);
+    const [warnEmpty, setWarmEmpty] = useState<boolean>(false);
 
     useEffect(() => {
         if (textareaRef.current instanceof HTMLTextAreaElement && editor === null) {
@@ -99,7 +100,7 @@ const MessageEditor: FunctionComponent<TProps> = (props: TProps) => {
                 <TabPanel></TabPanel>
                 <div className="editor-active" style={{display: isEditing ? 'block' : 'none'}}>
                     <div className="comment-input-wrapper">
-                    <textarea name="comment" id="" className="comment-input" ref={textareaRef}
+                    <textarea name="comment" id="" className={'comment-input ' + (warnEmpty ? 'comment-input-warn' : '')} ref={textareaRef}
                               placeholder="Напишите ответ на вопрос" disabled={isLoading}>
                     </textarea>
                     </div>
@@ -115,11 +116,18 @@ const MessageEditor: FunctionComponent<TProps> = (props: TProps) => {
                 {isLoading ? <Loader2 className="animate-spin" /> : ""}
                 <Button onClick={() => {
                     const content = editor?.getContent() ?? '';
+                    if (content === '') {
+                        setWarmEmpty(true);
+                        return;
+                    }
+
+                    setWarmEmpty(false);
                     setLoading(true);
                     props.onAnswer(onComplete, content);
                 }} className="button-ok" disabled={isLoading}>Ответить</Button>
                 <Button onClick={() => {
                     setLoading(true);
+                    setWarmEmpty(false);
                     props.onSkip(onComplete);
                 }} className="button-decline" disabled={isLoading}>Пропустить вопрос</Button>
             </div>

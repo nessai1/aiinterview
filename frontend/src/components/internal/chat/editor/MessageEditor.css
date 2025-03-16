@@ -121,6 +121,10 @@
     padding: 0 8px;
 }
 
+.comment-input-warn {
+    border: 1px red solid;
+}
+
 .button-ok {
     background-color: #238636;
     color: white;
