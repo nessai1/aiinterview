@@ -26,7 +26,7 @@ type Question = {
     text: string,
     answer: string,
     feedback: string,
-    grade: Grade
+    done: boolean
 }
 
 enum Grade {
@@ -42,6 +42,7 @@ export {
 export type {
     Interview,
     Topic,
-    Section
+    Section,
+    Question
 }
 

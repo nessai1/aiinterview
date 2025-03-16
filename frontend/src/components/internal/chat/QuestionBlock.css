@@ -11,8 +11,29 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Лёгкая тень */
 }
 
+
+.questionText {
+    background-color: rgba(9, 9, 11, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
 .questionHeader {
     font-weight: bold;
     font-size: 16px;
     margin-bottom: 10px;
+}
+
+.questionMessage {
+    margin-bottom: 10px;
+}
+
+.accordion {
+    background-color: rgba(9, 9, 11, 0.54);
+    border-radius: 12px;
+}
+
+.accordion button {
+    background-color: rgba(9, 9, 11, 0.9);
 }

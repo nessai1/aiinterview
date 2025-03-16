@@ -9,7 +9,6 @@
     font-size: 18px;
     overflow: hidden; /* Чтобы шум не выходил за границы */
 
-    height: 500px;
     min-width: 700px;
 }
 

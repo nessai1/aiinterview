@@ -120,3 +120,30 @@
 .editor-active {
     padding: 0 8px;
 }
+
+.button-ok {
+    background-color: #238636;
+    color: white;
+    border: 1px solid #ffffff1a;
+}
+
+.button-ok:hover {
+    background-color: #34ac4b;
+}
+
+.button-ok:active {
+    background-color: #257735;
+}
+
+.button-decline {
+    background-color: #d61616;
+    color: white;
+}
+
+.button-decline:hover {
+    background-color: #b11d1d;
+}
+
+.button-decline:active {
+    background-color: #ec3a3a;
+}
