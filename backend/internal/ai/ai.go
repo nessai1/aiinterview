@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"net/url"
+	"strconv"
+	"time"
 )
 
 // TODO: DI required model ID
@@ -20,6 +22,13 @@ const modelID = openai.GPT4o
 const assistantID = "AI_INTERVIEW"
 
 const promptAssistantIntroduction = "assistant_introduction"
+
+type command string
+
+const cmdSkip = command("SKIP")
+const cmdNext = command("NEXT")
+const cmdChange = command("CHANGE")
+const cmdFeedback = command("FEEDBACK")
 
 type Config struct {
 	Token string
@@ -118,4 +127,149 @@ func createProxyClient(config Config) *http.Client {
 	}
 
 	return &http.Client{Transport: transport}
+}
+
+var ErrEmptySections = fmt.Errorf("empty sections")
+var ErrCorrupt = fmt.Errorf("corrupt message")
+var InvalidCommand = fmt.Errorf("invalid command")
+
+// Start Create new thread with context of selected topics and time restriction
+func (s *Service) Start(ctx context.Context, topics []domain.Topic, sectionTimeMinutes int) (domain.ChatThread, string, error) {
+	secret, err := utils.RandomStringFromCharset(32)
+	if err != nil {
+		return domain.ChatThread{}, "", fmt.Errorf("cannot generate secret for thread")
+	}
+
+	resp, err := s.client.CreateThread(ctx, openai.ThreadRequest{})
+	if err != nil {
+		return domain.ChatThread{}, "", fmt.Errorf("cannot create thread: %w", err)
+	}
+
+	thread := domain.ChatThread{
+		ID:     resp.ID,
+		Secret: secret,
+	}
+
+	topicsStr := ""
+	for _, topic := range topics {
+		topicsStr += topic.Name + " - " + string(topic.Grade) + "; "
+	}
+
+	message, err := s.promptStorage.LoadPrompt("start_cmd", map[string]string{
+		"TOPICS":       topicsStr,
+		"SECRET":       thread.Secret,
+		"SECTION_TIME": strconv.Itoa(sectionTimeMinutes),
+	})
+
+	if err != nil {
+		return domain.ChatThread{}, "", fmt.Errorf("cannot load start prompt: %w", err)
+	}
+
+	respMessage, err := s.send(ctx, thread, message)
+	if err != nil {
+		return domain.ChatThread{}, "", fmt.Errorf("cannot send start message: %w", err)
+	}
+
+	return thread, respMessage, nil
+}
+
+func (s *Service) send(ctx context.Context, thread domain.ChatThread, message string) (string, error) {
+	_, err := s.client.CreateMessage(ctx, thread.ID, openai.MessageRequest{
+		Role:    openai.ChatMessageRoleUser,
+		Content: message,
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("cannot create message: %w", err)
+	}
+
+	run, err := s.client.CreateRun(ctx, thread.ID, openai.RunRequest{AssistantID: s.assistant.ID})
+	if err != nil {
+		return "", fmt.Errorf("cannot create run: %w", err)
+	}
+
+	for {
+		<-time.After(3 * time.Second)
+		run, err = s.client.RetrieveRun(ctx, thread.ID, run.ID)
+		if err != nil {
+			return "", fmt.Errorf("cannot retrieve run: %w", err)
+		}
+
+		if run.Status == openai.RunStatusCompleted || run.Status == openai.RunStatusFailed {
+			break
+		}
+	}
+
+	if run.Status != openai.RunStatusCompleted {
+		return "", fmt.Errorf("run status is not completed: %s", run.Status)
+	}
+
+	l, err := s.client.ListMessage(ctx, thread.ID, nil, nil, nil, nil, nil)
+
+	if err != nil {
+		return "", fmt.Errorf("cannot list messages: %w", err)
+	}
+
+	respMessage := l.Messages[0].Content[0].Text.Value
+
+	return respMessage, parseErrorMessage(respMessage)
+}
+
+func parseErrorMessage(msg string) error {
+	switch msg {
+	case "INVALID_COMMAND":
+		return InvalidCommand
+	case "EMPTY_SECTIONS":
+		return ErrEmptySections
+	case "CORRUPT":
+		return ErrCorrupt
+	}
+
+	return nil
+}
+
+func (s *Service) sendSimpleCommand(ctx context.Context, cmd command, thread domain.ChatThread) (string, error) {
+	commandText, err := s.promptStorage.LoadPrompt("simple_cmd", map[string]string{
+		"SECRET":  thread.Secret,
+		"COMMAND": string(cmd),
+	})
+
+	if err != nil {
+		return "", fmt.Errorf("cannot load next command prompt: %w", err)
+	}
+
+	resp, err := s.send(ctx, thread, commandText)
+
+	if err != nil {
+		return "", fmt.Errorf("cannot send '%s' command: %w", cmd, err)
+	}
+
+	return resp, nil
+}
+
+// Answer on current question in thread. Simple send message in thread
+func (s *Service) Answer(ctx context.Context, thread domain.ChatThread, answer string) (string, error) {
+	resp, err := s.send(ctx, thread, answer)
+	if err != nil {
+		return "", fmt.Errorf("cannot send answer: %w", err)
+	}
+
+	return resp, nil
+}
+
+// Next Get new answer in current section. Return next question text
+func (s *Service) Next(ctx context.Context, thread domain.ChatThread) (string, error) {
+	return s.sendSimpleCommand(ctx, cmdNext, thread)
+}
+
+func (s *Service) Skip(ctx context.Context, thread domain.ChatThread) (string, error) {
+	return s.sendSimpleCommand(ctx, cmdSkip, thread)
+}
+
+func (s *Service) Change(ctx context.Context, thread domain.ChatThread) (string, error) {
+	return s.sendSimpleCommand(ctx, cmdChange, thread)
+}
+
+func (s *Service) Feedback(ctx context.Context, thread domain.ChatThread) (string, error) {
+	return s.sendSimpleCommand(ctx, cmdFeedback, thread)
 }
