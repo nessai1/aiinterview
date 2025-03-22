@@ -14,27 +14,32 @@ type Interview struct {
 
 	IsComplete bool `json:"complete"` // computed -> time.Now() > StartTimestamp + Timing
 
-	Summarize Summarize `json:"summarize,omitempty"`
-	Sections  []Section `json:"sections"`
+	Summarize Summarize   `json:"summarize,omitempty"`
+	Sections  []Section   `json:"sections"`
+	Thread    *ChatThread `json:"-"`
 }
 
 type Section struct {
-	UUID        string     `json:"uuid"`
-	Name        string     `json:"name"`
-	Grade       TopicGrade `json:"grade"`
-	ActualGrade TopicGrade `json:"actualGrade"`
-	Position    int        `json:"position"`
-	IsStarted   bool       `json:"isStarted"`
-	IsComplete  bool       `json:"isComplete"`
-	Questions   []Question `json:"questions"`
-	Color       string
+	UUID          string     `json:"uuid"`
+	InterviewUUID string     `json:"interview_uuid"`
+	Name          string     `json:"name"`
+	Grade         TopicGrade `json:"grade"`
+	ActualGrade   TopicGrade `json:"actualGrade"`
+	Position      int        `json:"position"`
+	IsStarted     bool       `json:"isStarted"`
+	IsComplete    bool       `json:"isComplete"`
+	Questions     []Question `json:"questions"`
+	Color         string
 }
 
 type Question struct {
-	Question string `json:"question"`
-	Answer   string `json:"answer"`
-	Feedback string `json:"feedback"`
-	Done     bool   `json:"done"`
+	UUID          string `json:"uuid"`
+	SectionUUID   string `json:"section_uuid"`
+	InterviewUUID string `json:"interview_uuid"`
+	Question      string `json:"question"`
+	Answer        string `json:"answer"`
+	Feedback      string `json:"feedback"`
+	Done          bool   `json:"done"`
 }
 
 type Summarize struct {
@@ -57,4 +62,9 @@ const (
 type Topic struct {
 	Name  string     `json:"name"`
 	Grade TopicGrade `json:"grade"`
+}
+
+type ChatThread struct {
+	ID     string
+	Secret string
 }

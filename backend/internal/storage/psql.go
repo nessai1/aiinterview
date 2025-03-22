@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"errors"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nessai1/aiinterview/internal/utils"
+	"strings"
 	"time"
 
 	"context"
@@ -145,7 +147,7 @@ func (s *PSQLStorage) SetAssistant(ctx context.Context, assistant domain.Assista
 	return nil
 }
 
-func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic) (domain.Interview, error) {
+func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic, thread domain.ChatThread) (domain.Interview, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("cannot begin transaction: %w", err)
@@ -157,7 +159,7 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 	}
 
 	startTime := time.Now()
-	_, err = tx.ExecContext(ctx, "INSERT INTO interview (uuid, owner_uuid, title, start_timestamp, timing) VALUES ($1, $2, $3, $4, $5)", interviewUUID, owner.UUID, title, startTime, timing)
+	_, err = tx.ExecContext(ctx, "INSERT INTO interview (uuid, owner_uuid, title, start_timestamp, timing, thread) VALUES ($1, $2, $3, $4, $5, $6)", interviewUUID, owner.UUID, title, startTime, timing, thread.ID+"||"+thread.Secret)
 	if err != nil {
 		tx.Rollback()
 		return domain.Interview{}, fmt.Errorf("error while exec insert interview query: %w", err)
@@ -205,4 +207,138 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 		IsComplete:     false,
 		Sections:       sections,
 	}, nil
+}
+
+func (s *PSQLStorage) GetQuestion(ctx context.Context, UUID string) (domain.Question, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT section_uuid, interview_uuid, question, answer, feedback, done FROM question WHERE uuid = $1", UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("error while query question: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var question domain.Question
+		err = rows.Scan(&question.SectionUUID, &question.InterviewUUID, &question.Question, &question.Answer, &question.Feedback, &question.Done)
+		if err != nil {
+			return domain.Question{}, fmt.Errorf("error while scan question: %w", err)
+		}
+
+		return question, nil
+	}
+
+	return domain.Question{}, ErrNotFound
+}
+
+func (s *PSQLStorage) GetSection(ctx context.Context, UUID string) (domain.Section, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color FROM section WHERE uuid = $1", UUID)
+	if err != nil {
+		return domain.Section{}, fmt.Errorf("error while query section: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var section domain.Section
+		err = rows.Scan(&section.Name, &section.Grade, &section.Position, &section.IsStarted, &section.IsComplete, &section.Color)
+		if err != nil {
+			return domain.Section{}, fmt.Errorf("error while scan section: %w", err)
+		}
+
+		return section, nil
+	}
+
+	return domain.Section{}, ErrNotFound
+}
+
+func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string) (domain.Interview, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT title, start_timestamp, timing, thread  FROM interview WHERE uuid = $1", UUID)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("error while query interview: %w", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var interview domain.Interview
+		var timing int
+		var thread string
+		err = rows.Scan(&interview.Title, &interview.StartTimestamp, &timing, &thread)
+		if err != nil {
+			return domain.Interview{}, fmt.Errorf("error while scan interview: %w", err)
+		}
+
+		interview.UUID = UUID
+		interview.Timing = time.Duration(timing)
+		interview.IsComplete = time.Now().After(interview.StartTimestamp.Add(interview.Timing))
+
+		if thread != "" {
+			strs := strings.Split(thread, "||")
+			if len(strs) != 2 {
+				return domain.Interview{}, errors.New("invalid thread format - it must have delimiter '||' and contain 2 parts")
+			}
+
+			interview.Thread = &domain.ChatThread{
+				ID:     strs[0],
+				Secret: strs[1],
+			}
+		}
+
+		sections, err := s.getInterviewSections(ctx, UUID)
+		if err != nil {
+			return domain.Interview{}, fmt.Errorf("cannot get sections: %w", err)
+		}
+
+		interview.Sections = sections
+
+		return interview, nil
+	}
+
+	return domain.Interview{}, ErrNotFound
+}
+
+func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID string) ([]domain.Section, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color FROM section WHERE interview_uuid = $1", interviewUUID)
+	if err != nil {
+		return nil, fmt.Errorf("error while query sections: %w", err)
+	}
+
+	defer rows.Close()
+
+	sections := make([]domain.Section, 0)
+	for rows.Next() {
+		var section domain.Section
+		err = rows.Scan(&section.Name, &section.Grade, &section.Position, &section.IsStarted, &section.IsComplete, &section.Color)
+		if err != nil {
+			return nil, fmt.Errorf("error while scan section: %w", err)
+		}
+
+		sections = append(sections, section)
+	}
+
+	return sections, nil
+}
+
+// TODO: we can load all questions in one query
+
+func (s *PSQLStorage) getSectionQuestions(ctx context.Context, sectionUUID string) ([]domain.Question, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT question, answer, feedback, done FROM question WHERE section_uuid = $1", sectionUUID)
+	if err != nil {
+		return nil, fmt.Errorf("error while query questions: %w", err)
+	}
+
+	defer rows.Close()
+
+	questions := make([]domain.Question, 0)
+	for rows.Next() {
+		var question domain.Question
+		err = rows.Scan(&question.Question, &question.Answer, &question.Feedback, &question.Done)
+		if err != nil {
+			return nil, fmt.Errorf("error while scan question: %w", err)
+		}
+
+		questions = append(questions, question)
+	}
+
+	return questions, nil
 }
