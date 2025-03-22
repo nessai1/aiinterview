@@ -1,0 +1,4 @@
+[START]
+Время на тему в минутах: {{SECTION_TIME}}
+Темы: {{TOPICS}}
+Ключ: {{SECRET}}
