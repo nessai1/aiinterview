@@ -161,7 +161,7 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 	}
 
 	startTime := time.Now()
-	_, err = tx.ExecContext(ctx, "INSERT INTO interview (uuid, owner_uuid, title, start_timestamp, timing, thread) VALUES ($1, $2, $3, $4, $5, $6)", interviewUUID, owner.UUID, title, startTime, timing, thread.ID+"||"+thread.Secret)
+	_, err = tx.ExecContext(ctx, "INSERT INTO interview (uuid, owner_uuid, title, start_timestamp, timing, thread) VALUES ($1, $2, $3, $4, $5, $6)", interviewUUID, owner.UUID, title, startTime.UTC(), timing, thread.ID+"||"+thread.Secret)
 	if err != nil {
 		tx.Rollback()
 		return domain.Interview{}, fmt.Errorf("error while exec insert interview query: %w", err)
@@ -346,7 +346,7 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 		interview.UUID = UUID
 		interview.Timing = time.Duration(timing)
 		interview.IsComplete = time.Now().After(interview.StartTimestamp.Add(interview.Timing))
-		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now()).Seconds())
+		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now().UTC()).Seconds())
 
 		if feedback.Valid {
 			interview.Feedback = feedback.String
