@@ -51,6 +51,8 @@ func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	s.logger.Debug("Load interview", zap.String("interview_uuid", interviewID), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
+
 	interview, err := s.interviewService.GetInterview(r.Context(), user, interviewID)
 	if err != nil {
 		s.logger.Error("Error while load interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))

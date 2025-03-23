@@ -14,13 +14,13 @@ import {
 
 type TProps = {
     question: Question,
+    onAnswer: () => void,
     showFeedback: boolean
 }
 
 
 
 const QuestionBlock: React.FC<TProps> = (props: TProps) => {
-
     const [answer, setAnswer] = useState<string>(props.question.answer);
     const [isDone, setDone] = useState<boolean>(props.question.done);
 

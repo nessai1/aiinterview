@@ -21,15 +21,13 @@ CREATE TABLE IF NOT EXISTS section (
     uuid UUID NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     grade GRADE NOT NULL,
-    actual_grade GRADE NULL,
     position INT NOT NULL,
 
     interview_uuid UUID NOT NULL,
 
     color VARCHAR(8) NOT NULL,
     is_started BOOLEAN NOT NULL DEFAULT false,
-    is_complete BOOLEAN NOT NULL DEFAULT false,
-    feedback TEXT NULL
+    is_complete BOOLEAN NOT NULL DEFAULT false
 );
 
 CREATE INDEX IF NOT EXISTS ix_section_interview ON section (interview_uuid);

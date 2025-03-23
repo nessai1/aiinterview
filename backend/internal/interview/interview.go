@@ -54,8 +54,13 @@ func (s *Service) CreateInterview(ctx context.Context, user domain.User, title s
 }
 
 func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewUUID string) (domain.Interview, error) {
-	s.storage.GetInterview(ctx, interviewUUID, user.UUID)
-	return domain.Interview{}, nil
+
+	interview, err := s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot get interview from storage: %w", err)
+	}
+
+	return interview, nil
 }
 
 // Flow section

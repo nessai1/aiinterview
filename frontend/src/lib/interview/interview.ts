@@ -4,7 +4,10 @@ type Interview = {
     complete: boolean,
     timing: number,
     sections: Section[],
+    feedback: string,
+    seconds_left: number,
 };
+
 
 type Topic = {
     name: string

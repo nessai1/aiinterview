@@ -10,13 +10,14 @@ type Interview struct {
 	UUID           string        `json:"uuid"`
 	Title          string        `json:"title"`
 	Timing         time.Duration `json:"timing"` // in seconds, cuz need to show timer HH:MM:SS
+	SecondsLeft    int           `json:"seconds_left"`
 	StartTimestamp time.Time     `json:"start_timestamp"`
 
 	IsComplete bool `json:"complete"` // computed -> time.Now() > StartTimestamp + Timing
 
-	Summarize Summarize   `json:"summarize,omitempty"`
-	Sections  []Section   `json:"sections"`
-	Thread    *ChatThread `json:"-"`
+	Feedback string      `json:"feedback,omitempty"`
+	Sections []Section   `json:"sections"`
+	Thread   *ChatThread `json:"-"`
 }
 
 type Section struct {
@@ -24,12 +25,11 @@ type Section struct {
 	InterviewUUID string     `json:"interview_uuid"`
 	Name          string     `json:"name"`
 	Grade         TopicGrade `json:"grade"`
-	ActualGrade   TopicGrade `json:"actualGrade"`
 	Position      int        `json:"position"`
 	IsStarted     bool       `json:"isStarted"`
 	IsComplete    bool       `json:"isComplete"`
 	Questions     []Question `json:"questions"`
-	Color         string
+	Color         string     `json:"color"`
 }
 
 type Question struct {

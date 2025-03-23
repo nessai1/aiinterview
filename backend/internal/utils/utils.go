@@ -70,3 +70,16 @@ func GenerateColorFromUUID(uuid string) string {
 	hexColor := fmt.Sprintf("#%02X%02X%02X", r, g, b)
 	return hexColor
 }
+
+var colors = []string{
+	"8004f4b3",
+	"80391df4",
+	"80f4a941",
+	"1f87f685",
+	"3dcc298a",
+	"cc29298a",
+}
+
+func GenerateColor(factor int) string {
+	return colors[factor%len(colors)]
+}

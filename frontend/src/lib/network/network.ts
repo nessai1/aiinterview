@@ -2,6 +2,7 @@ import {Interview, Topic} from "@/lib/interview/interview.ts";
 import axios from 'axios';
 
 type GetInterviewListResponse = Interview[]
+type GetInterviewResponse = Interview
 
 type CreateInterviewRequest = {
     title: string,
@@ -33,6 +34,24 @@ class Network {
                withCredentials: true,
            }
        )
+
+        if (status !== 200) {
+            throw new Error("Invalid code while get interview list: expeted 200, got " + status);
+        }
+
+        return data;
+    }
+
+    async loadInterview(interviewId: string): Promise<Interview> {
+        const {data, status} = await axios.get<GetInterviewResponse>(
+            this.serviceUrl + '/api/interview/' + interviewId,
+            {
+                headers: {
+                    Accept: 'application/json',
+                },
+                withCredentials: true,
+            }
+        )
 
         if (status !== 200) {
             throw new Error("Invalid code while get interview list: expeted 200, got " + status);

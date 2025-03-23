@@ -4,6 +4,7 @@ import (
 	"errors"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nessai1/aiinterview/internal/utils"
+	"math/rand"
 	"slices"
 	"strings"
 	"time"
@@ -174,9 +175,14 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 			return domain.Interview{}, fmt.Errorf("cannot generate UUIDv7 for section: %w", err)
 		}
 
-		color := utils.GenerateColorFromUUID(sectionUUID)
+		isStarted := false
+		if i == 0 {
+			isStarted = true
+		}
 
-		_, err = tx.ExecContext(ctx, "INSERT INTO section (uuid, name, grade, position, interview_uuid, color) VALUES ($1, $2, $3, $4, $5, $6)", sectionUUID, topic.Name, topic.Grade, i, interviewUUID, color)
+		color := utils.GenerateColor(rand.Int())
+
+		_, err = tx.ExecContext(ctx, "INSERT INTO section (uuid, name, grade, position, interview_uuid, color, is_started) VALUES ($1, $2, $3, $4, $5, $6, $7)", sectionUUID, topic.Name, topic.Grade, i, interviewUUID, color, isStarted)
 
 		if err != nil {
 			tx.Rollback()
@@ -232,7 +238,11 @@ func (s *PSQLStorage) GetQuestion(ctx context.Context, UUID string) (domain.Ques
 }
 
 func (s *PSQLStorage) getSectionQuestions(ctx context.Context, sectionUUID string) ([]domain.Question, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT question, answer, feedback, uuid, position FROM question WHERE section_uuid = $1", sectionUUID)
+	if sectionUUID == "" {
+		return nil, errors.New("cannot get section questions: section UUID is empty")
+	}
+
+	rows, err := s.db.QueryContext(ctx, "SELECT question, answer, feedback, uuid, position, done FROM question WHERE section_uuid = $1", sectionUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error while query questions: %w", err)
 	}
@@ -242,7 +252,7 @@ func (s *PSQLStorage) getSectionQuestions(ctx context.Context, sectionUUID strin
 	questions := make([]domain.Question, 0)
 	for rows.Next() {
 		var question domain.Question
-		err = rows.Scan(&question.Question, &question.Answer, &question.Feedback, &question.UUID, &question.Position)
+		err = rows.Scan(&question.Question, &question.Answer, &question.Feedback, &question.UUID, &question.Position, &question.Done)
 		if err != nil {
 			return nil, fmt.Errorf("error while scan question: %w", err)
 		}
@@ -314,18 +324,21 @@ func (s *PSQLStorage) GetSection(ctx context.Context, UUID string) (domain.Secti
 }
 
 func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID string) (domain.Interview, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT title, start_timestamp, timing, thread  FROM interview WHERE uuid = $1 AND owner_uuid = $2", UUID, UserUUID)
+
+	rows, err := s.db.QueryContext(ctx, "SELECT title, start_timestamp, timing, thread, feedback  FROM interview WHERE uuid = $1 AND owner_uuid = $2", UUID, UserUUID)
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("error while query interview: %w", err)
 	}
 
 	defer rows.Close()
 
+	var feedback sql.NullString
 	for rows.Next() {
 		var interview domain.Interview
 		var timing int
 		var thread string
-		err = rows.Scan(&interview.Title, &interview.StartTimestamp, &timing, &thread)
+		err = rows.Scan(&interview.Title, &interview.StartTimestamp, &timing, &thread, &feedback)
+
 		if err != nil {
 			return domain.Interview{}, fmt.Errorf("error while scan interview: %w", err)
 		}
@@ -333,6 +346,11 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 		interview.UUID = UUID
 		interview.Timing = time.Duration(timing)
 		interview.IsComplete = time.Now().After(interview.StartTimestamp.Add(interview.Timing))
+		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now()).Seconds())
+
+		if feedback.Valid {
+			interview.Feedback = feedback.String
+		}
 
 		if thread != "" {
 			strs := strings.Split(thread, "||")
@@ -360,7 +378,7 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 }
 
 func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID string) ([]domain.Section, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color FROM section WHERE interview_uuid = $1", interviewUUID)
+	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color, uuid FROM section WHERE interview_uuid = $1", interviewUUID)
 	if err != nil {
 		return nil, fmt.Errorf("error while query sections: %w", err)
 	}
@@ -370,15 +388,21 @@ func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID st
 	sections := make([]domain.Section, 0)
 	for rows.Next() {
 		var section domain.Section
-		err = rows.Scan(&section.Name, &section.Grade, &section.Position, &section.IsStarted, &section.IsComplete, &section.Color)
+		err = rows.Scan(&section.Name, &section.Grade, &section.Position, &section.IsStarted, &section.IsComplete, &section.Color, &section.UUID)
 		if err != nil {
 			return nil, fmt.Errorf("error while scan section: %w", err)
 		}
+
+		// TODO: we can load all questions in one query
+		questions, err := s.getSectionQuestions(ctx, section.UUID)
+		if err != nil {
+			return nil, fmt.Errorf("cannot get questions for section: %w", err)
+		}
+
+		section.Questions = questions
 
 		sections = append(sections, section)
 	}
 
 	return sections, nil
 }
-
-// TODO: we can load all questions in one query
