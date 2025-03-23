@@ -90,13 +90,6 @@ const CreateInterviewDialog: FunctionComponent = () => {
 
         setLoad(true);
 
-        // Заглушка запроса (здесь можно сделать реальный API вызов)
-        console.log("Отправка данных:", {
-            title,
-            time,
-            grades
-        });
-
         window.network.createInterview({
             title,
             timing: parseInt(time),

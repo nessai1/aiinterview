@@ -93,6 +93,7 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string)
 
 			sections := []domain.Section{{Name: sectionName, Grade: domain.TopicGrade(sectionGrade)}}
 			timingDuration := time.Duration(timing)
+			secsLeft := int(startTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now().UTC()).Seconds())
 			interviews[uuid] = &domain.Interview{
 				UUID:           uuid,
 				Title:          title,
@@ -100,7 +101,8 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string)
 				StartTimestamp: startTimestamp,
 				Sections:       sections,
 				Feedback:       feedbackStr,
-				IsComplete:     time.Now().Compare(startTimestamp) >= 0,
+				SecondsLeft:    secsLeft,
+				IsComplete:     secsLeft <= 0,
 			}
 		}
 	}
@@ -364,8 +366,8 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 
 		interview.UUID = UUID
 		interview.Timing = time.Duration(timing)
-		interview.IsComplete = time.Now().After(interview.StartTimestamp.Add(interview.Timing))
 		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now().UTC()).Seconds())
+		interview.IsComplete = interview.SecondsLeft <= 0
 
 		if feedback.Valid {
 			interview.Feedback = feedback.String

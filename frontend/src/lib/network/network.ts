@@ -89,8 +89,6 @@ class Network {
             }
         )
 
-        console.log(data);
-
         if (status !== 200) {
             throw new Error("Invalid code while preview message: expeted 200, got " + status);
         }

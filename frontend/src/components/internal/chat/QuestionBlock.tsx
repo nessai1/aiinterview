@@ -21,9 +21,7 @@ type TProps = {
 
 
 const QuestionBlock: React.FC<TProps> = (props: TProps) => {
-    const [answer, setAnswer] = useState<string>(props.question.answer);
-    const [isDone, setDone] = useState<boolean>(props.question.done);
-
+    const [question, setQuestion] = useState<Question>(props.question);
 
     return (
         <div className="questionBlock">
@@ -32,19 +30,36 @@ const QuestionBlock: React.FC<TProps> = (props: TProps) => {
                     Вопрос 1:
                 </div>
                 <div className="questionText">
-                    <Markdown>{props.question.text}</Markdown>
+                    <Markdown>{question.question}</Markdown>
                 </div>
-                <div className="questionMessage">
-                    <MessageEditor onAnswer={() => {}} onSkip={() => {}} />
-                </div>
-                <Accordion className="accordion" type="single" collapsible disabled={props.showFeedback}>
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger>Обратная связь ИИ</AccordionTrigger>
-                        <AccordionContent>
-                            <Markdown>{props.question.feedback}</Markdown>
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                {
+                    question.done ? (
+                        <>
+                            <div className="questionMessage">
+                                {
+                                    question.answer === "" ? (
+                                        <div className="noAnswer">
+                                            Ответ не предоставлен
+                                        </div>
+                                    ) : <Markdown>{question.answer}</Markdown>
+                                }
+                            </div>
+                            <Accordion className="accordion" type="single" collapsible>
+                                <AccordionItem value="item-1">
+                                    <AccordionTrigger>Обратная связь ИИ</AccordionTrigger>
+                                    <AccordionContent>
+                                        <Markdown>{question.feedback}</Markdown>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </>
+                    ) : (
+                        <div className="questionMessage">
+                            <MessageEditor onAnswer={() => {}} onSkip={() => {}} />
+                        </div>
+                    )
+                }
+
             </div>
         </div>
     );

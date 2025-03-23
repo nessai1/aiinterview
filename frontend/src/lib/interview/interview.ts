@@ -26,7 +26,9 @@ type Section = {
 
 type Question = {
     uuid: string,
-    text: string,
+    section_uuid: string,
+    position: number,
+    question: string,
     answer: string,
     feedback: string,
     done: boolean
