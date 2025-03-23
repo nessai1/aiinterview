@@ -13,7 +13,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds }) => {
         if (timeLeft <= 0) return;
         const timer = setInterval(() => {
             setTimeLeft((prev) => Math.max(prev - 1, 0));
-        }, 1000);
+        }, 900);
         return () => clearInterval(timer);
     }, [timeLeft]);
 
@@ -32,7 +32,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds }) => {
             className={cn(
                 "fixed top-4 left-1/2 -translate-x-1/2 z-50", // Фиксируем вверху по центру
                 "flex items-center gap-3 px-6 py-3 rounded-lg w-44",
-                "bg-black/30 backdrop-blur-lg text-white border border-white/20 shadow-lg"
+                "bg-black/30 backdrop-blur-lg text-white border border-white/20 shadow-lg" + (timeLeft <= 0 ? "  hidden" : "")
             )}
         >
             <AlarmClock className="w-6 h-6 text-white opacity-80" />
