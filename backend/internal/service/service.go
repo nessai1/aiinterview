@@ -99,6 +99,7 @@ func (s *Service) buildRouter() *mux.Router {
 	apiRouter.Use(s.middlewareTokenAuth)
 
 	apiRouter.HandleFunc("/interview/list", s.handleAPIGetInterviewList).Methods("GET")
+	apiRouter.HandleFunc("/interview/{interviewID}", s.handleAPIGetInterview).Methods("GET")
 	apiRouter.HandleFunc("/interview", s.handleAPICreateInterview).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/preview", s.handleAPIPreviewMessage).Methods("POST", "OPTIONS")
 

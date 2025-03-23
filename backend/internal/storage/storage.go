@@ -15,8 +15,10 @@ type Storage interface {
 	GetAssistant(ctx context.Context, ID string) (domain.Assistant, error)
 	SetAssistant(ctx context.Context, assistant domain.Assistant) error
 
-	CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic, threadID string) (domain.Interview, error)
+	CreateInterview(ctx context.Context, owner domain.User, title string, timing int, topics []domain.Topic, thread domain.ChatThread) (domain.Interview, error)
 
 	GetQuestion(ctx context.Context, UUID string) (domain.Question, error)
+	AddQuestion(ctx context.Context, question, sectionUUID string) (domain.Question, error)
 	GetSection(ctx context.Context, UUID string) (domain.Section, error)
+	GetInterview(ctx context.Context, UUID string, UserUUID string) (domain.Interview, error)
 }

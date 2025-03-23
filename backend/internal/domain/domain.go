@@ -40,6 +40,7 @@ type Question struct {
 	Answer        string `json:"answer"`
 	Feedback      string `json:"feedback"`
 	Done          bool   `json:"done"`
+	Position      int    `json:"position"`
 }
 
 type Summarize struct {

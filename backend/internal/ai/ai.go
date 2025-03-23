@@ -109,7 +109,7 @@ func NewService(promptStorage *prompt.Storage, logger *zap.Logger, st storage.St
 		}
 	}
 
-	return &Service{config: config, client: client, assistant: assistant, externalAssistant: externalAssistant}, nil
+	return &Service{config: config, client: client, assistant: assistant, externalAssistant: externalAssistant, promptStorage: promptStorage}, nil
 }
 
 func createProxyClient(config Config) *http.Client {
@@ -183,7 +183,7 @@ func (s *Service) send(ctx context.Context, thread domain.ChatThread, message st
 		return "", fmt.Errorf("cannot create message: %w", err)
 	}
 
-	run, err := s.client.CreateRun(ctx, thread.ID, openai.RunRequest{AssistantID: s.assistant.ID})
+	run, err := s.client.CreateRun(ctx, thread.ID, openai.RunRequest{AssistantID: s.assistant.ExternalID})
 	if err != nil {
 		return "", fmt.Errorf("cannot create run: %w", err)
 	}

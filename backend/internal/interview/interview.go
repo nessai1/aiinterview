@@ -28,15 +28,44 @@ func NewService(str storage.Storage, aiService *ai.Service, logger *zap.Logger) 
 }
 
 func (s *Service) CreateInterview(ctx context.Context, user domain.User, title string, timingMins int, topics []domain.Topic) (domain.Interview, error) {
-
 	if len(topics)*5 > timingMins {
 		return domain.Interview{}, ErrSmallTiming
 	}
 
-	interview, err := s.storage.CreateInterview(ctx, user, title, timingMins*60, topics)
+	thread, firstQuestion, err := s.aiService.Start(ctx, topics, timingMins)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot start AI: %w", err)
+	}
+
+	interview, err := s.storage.CreateInterview(ctx, user, title, timingMins*60, topics, thread)
+
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("cannot create new interview in storage: %w", err)
 	}
 
+	question, err := s.storage.AddQuestion(ctx, firstQuestion, interview.Sections[0].UUID)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot add first question to storage: %w", err)
+	}
+
+	interview.Sections[0].Questions = append(interview.Sections[0].Questions, question)
+
 	return interview, nil
+}
+
+func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewUUID string) (domain.Interview, error) {
+	s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+	return domain.Interview{}, nil
+}
+
+// Flow section
+
+var ErrSectionOver = fmt.Errorf("section is over")
+var ErrInterviewOver = fmt.Errorf("interview is over")
+
+var ErrAlreadyAnswered = fmt.Errorf("question already answered")
+
+func (s *Service) AnswerQuestionAndGetNewQuestion(ctx context.Context, user domain.User, questionUUID string, answer string) (domain.Question, error) {
+	// TODO
+	return domain.Question{}, nil
 }

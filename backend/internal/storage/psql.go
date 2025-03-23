@@ -4,6 +4,7 @@ import (
 	"errors"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nessai1/aiinterview/internal/utils"
+	"slices"
 	"strings"
 	"time"
 
@@ -189,7 +190,7 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 			Position:   i,
 			IsStarted:  false,
 			IsComplete: false,
-			Questions:  nil,
+			Questions:  make([]domain.Question, 0),
 			Color:      color,
 		})
 	}
@@ -230,6 +231,67 @@ func (s *PSQLStorage) GetQuestion(ctx context.Context, UUID string) (domain.Ques
 	return domain.Question{}, ErrNotFound
 }
 
+func (s *PSQLStorage) getSectionQuestions(ctx context.Context, sectionUUID string) ([]domain.Question, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT question, answer, feedback, uuid, position FROM question WHERE section_uuid = $1", sectionUUID)
+	if err != nil {
+		return nil, fmt.Errorf("error while query questions: %w", err)
+	}
+
+	defer rows.Close()
+
+	questions := make([]domain.Question, 0)
+	for rows.Next() {
+		var question domain.Question
+		err = rows.Scan(&question.Question, &question.Answer, &question.Feedback, &question.UUID, &question.Position)
+		if err != nil {
+			return nil, fmt.Errorf("error while scan question: %w", err)
+		}
+
+		question.SectionUUID = sectionUUID
+		questions = append(questions, question)
+	}
+
+	slices.SortFunc(questions, func(a, b domain.Question) int {
+		if a.Position < b.Position {
+			return -1
+		} else if a.Position > b.Position {
+			return 1
+		}
+
+		return 0
+	})
+
+	return questions, nil
+}
+
+func (s *PSQLStorage) AddQuestion(ctx context.Context, question, sectionUUID string) (domain.Question, error) {
+	questionUUID, err := utils.GenerateUUIDv7()
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot generate UUIDv7: %w", err)
+	}
+
+	questions, err := s.getSectionQuestions(ctx, sectionUUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot get questions for compute position: %w", err)
+	}
+
+	position := len(questions) + 1
+
+	_, err = s.db.ExecContext(ctx, "INSERT INTO question (uuid, section_uuid, question, answer, feedback, done, position) VALUES ($1, $2, $3, $4, $5, $6, $7)", questionUUID, sectionUUID, question, "", "", false, position)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("error while exec insert question query: %w", err)
+	}
+
+	return domain.Question{
+		UUID:        questionUUID,
+		SectionUUID: sectionUUID,
+		Question:    question,
+		Answer:      "",
+		Feedback:    "",
+		Done:        false,
+	}, nil
+}
+
 func (s *PSQLStorage) GetSection(ctx context.Context, UUID string) (domain.Section, error) {
 	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color FROM section WHERE uuid = $1", UUID)
 	if err != nil {
@@ -251,8 +313,8 @@ func (s *PSQLStorage) GetSection(ctx context.Context, UUID string) (domain.Secti
 	return domain.Section{}, ErrNotFound
 }
 
-func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string) (domain.Interview, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT title, start_timestamp, timing, thread  FROM interview WHERE uuid = $1", UUID)
+func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID string) (domain.Interview, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT title, start_timestamp, timing, thread  FROM interview WHERE uuid = $1 AND owner_uuid = $2", UUID, UserUUID)
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("error while query interview: %w", err)
 	}
@@ -320,25 +382,3 @@ func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID st
 }
 
 // TODO: we can load all questions in one query
-
-func (s *PSQLStorage) getSectionQuestions(ctx context.Context, sectionUUID string) ([]domain.Question, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT question, answer, feedback, done FROM question WHERE section_uuid = $1", sectionUUID)
-	if err != nil {
-		return nil, fmt.Errorf("error while query questions: %w", err)
-	}
-
-	defer rows.Close()
-
-	questions := make([]domain.Question, 0)
-	for rows.Next() {
-		var question domain.Question
-		err = rows.Scan(&question.Question, &question.Answer, &question.Feedback, &question.Done)
-		if err != nil {
-			return nil, fmt.Errorf("error while scan question: %w", err)
-		}
-
-		questions = append(questions, question)
-	}
-
-	return questions, nil
-}
