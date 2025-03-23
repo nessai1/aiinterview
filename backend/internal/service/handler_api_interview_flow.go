@@ -3,8 +3,10 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/gorilla/mux"
 	"github.com/nessai1/aiinterview/internal/domain"
+	"github.com/nessai1/aiinterview/internal/interview"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -14,10 +16,16 @@ type AnswerQuestionRequest struct {
 	QuestionUUID string `json:"question_uuid"`
 }
 
-type AnswerQuestionResponse struct {
-}
-
+// 205 - required for document.location.reload()
+// 220 - next section
 func (s *Service) handleAPIAnswerQuestion(w http.ResponseWriter, r *http.Request) {
+	user, ok := r.Context().Value(contextUserKey).(domain.User)
+	if !ok {
+		s.logger.Error("User come to API without user in context", zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 
 	reader := bytes.Buffer{}
 	_, err := reader.ReadFrom(r.Body)
@@ -36,7 +44,36 @@ func (s *Service) handleAPIAnswerQuestion(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//s.interviewService.AnswerQuestionAndGetNewQuestion(r.Context(), answerRequest.QuestionUUID, answerRequest.Answer)
+	question, err := s.interviewService.AnswerQuestion(r.Context(), user, answerRequest.QuestionUUID, answerRequest.Answer)
+
+	if err == nil || errors.Is(err, interview.ErrSectionOver) {
+		code := 200
+		if errors.Is(err, interview.ErrSectionOver) {
+			code = 220
+		}
+
+		jsoned, err := json.Marshal(&question)
+		if err != nil {
+			s.logger.Error("Cannot marshal question result", zap.String("req_uri", r.RequestURI), zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(code)
+		_, err = w.Write(jsoned)
+		if err != nil {
+			s.logger.Error("Cannot write result to user", zap.String("req_uri", r.RequestURI), zap.Error(err))
+			return
+		}
+	}
+
+	if errors.Is(err, interview.ErrAlreadyAnswered) || errors.Is(err, interview.ErrInterviewOver) {
+		w.WriteHeader(205)
+		return
+	}
+
+	s.logger.Error("Error while answer question", zap.Error(err), zap.String("req_uri", r.RequestURI))
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +90,7 @@ func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) 
 
 	s.logger.Debug("Load interview", zap.String("interview_uuid", interviewID), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
 
-	interview, err := s.interviewService.GetInterview(r.Context(), user, interviewID)
+	i, err := s.interviewService.GetInterview(r.Context(), user, interviewID)
 	if err != nil {
 		s.logger.Error("Error while load interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
 		w.WriteHeader(http.StatusInternalServerError)
@@ -61,7 +98,7 @@ func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	jsoned, err := json.Marshal(&interview)
+	jsoned, err := json.Marshal(&i)
 	if err != nil {
 		s.logger.Error("Error while marshal interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
 		w.WriteHeader(http.StatusInternalServerError)

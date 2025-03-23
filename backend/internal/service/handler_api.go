@@ -17,7 +17,7 @@ func (s *Service) handleAPIGetInterviewList(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	interviews, err := s.storage.GetUserInterviewList(r.Context(), user.UUID)
+	interviews, err := s.interviewService.GetUserInterviewList(r.Context(), user)
 	if err != nil {
 		s.logger.Error("Error while load interview list", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
 		w.WriteHeader(http.StatusInternalServerError)

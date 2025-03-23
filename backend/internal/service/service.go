@@ -63,12 +63,12 @@ func NewService(config Config) (*Service, error) {
 		return nil, fmt.Errorf("cannot create AI service: %w", err)
 	}
 
-	interviewService, err := interview.NewService(s, aiService, logger)
+	messageParser := message.NewParser(message.NewHighlighter())
+
+	interviewService, err := interview.NewService(s, aiService, logger, messageParser)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create interview service: %w", err)
 	}
-
-	messageParser := message.NewParser(message.NewHighlighter())
 
 	return &Service{config: config, interviewService: interviewService, storage: s, logger: logger, authService: &authService, messageParser: messageParser}, nil
 }

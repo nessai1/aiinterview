@@ -266,6 +266,7 @@ func (s *Service) Skip(ctx context.Context, thread domain.ChatThread) (string, e
 	return s.sendSimpleCommand(ctx, cmdSkip, thread)
 }
 
+// Change section to next
 func (s *Service) Change(ctx context.Context, thread domain.ChatThread) (string, error) {
 	return s.sendSimpleCommand(ctx, cmdChange, thread)
 }

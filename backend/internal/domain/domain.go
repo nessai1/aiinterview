@@ -20,6 +20,16 @@ type Interview struct {
 	Thread   *ChatThread `json:"-"`
 }
 
+func (i *Interview) GetActiveSection() *Section {
+	for _, section := range i.Sections {
+		if !section.IsComplete && section.IsStarted {
+			return &section
+		}
+	}
+
+	return nil
+}
+
 type Section struct {
 	UUID          string     `json:"uuid"`
 	InterviewUUID string     `json:"interview_uuid"`
@@ -30,6 +40,16 @@ type Section struct {
 	IsComplete    bool       `json:"isComplete"`
 	Questions     []Question `json:"questions"`
 	Color         string     `json:"color"`
+}
+
+func (s *Section) GetActiveQuestion() *Question {
+	for _, question := range s.Questions {
+		if !question.Done {
+			return &question
+		}
+	}
+
+	return nil
 }
 
 type Question struct {
