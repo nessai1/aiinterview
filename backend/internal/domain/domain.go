@@ -43,6 +43,10 @@ type Section struct {
 }
 
 func (s *Section) GetActiveQuestion() *Question {
+	if s.Questions == nil {
+		return nil
+	}
+
 	for _, question := range s.Questions {
 		if !question.Done {
 			return &question

@@ -7,7 +7,7 @@ import {Network} from "@/lib/network/network.ts";
 import './code-highlight.css';
 
 
-let addr = '';
+let addr = 'http://localhost:9595';
 let isDev = false;
 
 if (process.env.NODE_ENV === 'development') {

@@ -102,6 +102,10 @@ func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewU
 func (s *Service) closeInterview(ctx context.Context, interview *domain.Interview, user domain.User) error {
 
 	activeSection := interview.GetActiveSection()
+	if activeSection == nil {
+		return fmt.Errorf("cannot get active section for close interview")
+	}
+
 	question := activeSection.GetActiveQuestion()
 
 	if question != nil {

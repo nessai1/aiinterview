@@ -11,6 +11,8 @@ import (
 	"github.com/nessai1/aiinterview/internal/utils"
 	"go.uber.org/zap"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 type Service struct {
@@ -109,10 +111,37 @@ func (s *Service) buildRouter() *mux.Router {
 	apiRouter.HandleFunc("/question/change/{interviewID}", s.handleAPIQuestionNextSection).Methods("GET")
 	apiRouter.HandleFunc("/question/next/{interviewID}", s.handleAPIQuestionNext).Methods("GET")
 	publicRouter := router.PathPrefix("/").Subrouter()
+
+	// Статические файлы (например, assets из dist/assets)
+	distDir := "./public"
+	staticFileHandler := http.StripPrefix("/assets/", http.FileServer(http.Dir(filepath.Join(distDir, "assets"))))
+	publicRouter.PathPrefix("/assets/").Handler(staticFileHandler)
+
+	// Отдаем index.html для SPA
+	spaHandler := spaHandlerStruct{staticPath: distDir, indexPath: "index.html"}
+
 	publicRouter.Use(s.middlewareTokenAuth)
-	publicRouter.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Write([]byte("hello world"))
-	})
+	publicRouter.PathPrefix("/").Handler(spaHandler)
+	publicRouter.PathPrefix("/interview/").Handler(spaHandler)
 
 	return router
+}
+
+// Хендлер, который отдает index.html и игнорирует путь
+type spaHandlerStruct struct {
+	staticPath string
+	indexPath  string
+}
+
+func (h spaHandlerStruct) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	path := filepath.Join(h.staticPath, r.URL.Path)
+
+	// Проверяем — если файл существует, отдаем его
+	if _, err := os.Stat(path); err == nil {
+		http.ServeFile(w, r, path)
+		return
+	}
+
+	// Иначе — всегда отдаём index.html
+	http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
 }
