@@ -103,6 +103,11 @@ func (s *Service) buildRouter() *mux.Router {
 	apiRouter.HandleFunc("/interview", s.handleAPICreateInterview).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/preview", s.handleAPIPreviewMessage).Methods("POST", "OPTIONS")
 
+	// interview flow
+	apiRouter.HandleFunc("/question", s.handleAPIAnswerQuestion).Methods("POST", "OPTIONS")
+
+	apiRouter.HandleFunc("/question/change/{interviewID}", s.handleAPIQuestionNextSection).Methods("GET")
+	apiRouter.HandleFunc("/question/next/{interviewID}", s.handleAPIQuestionNext).Methods("GET")
 	publicRouter := router.PathPrefix("/").Subrouter()
 	publicRouter.Use(s.middlewareTokenAuth)
 	publicRouter.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {

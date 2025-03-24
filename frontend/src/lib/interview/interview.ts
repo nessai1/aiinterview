@@ -16,6 +16,7 @@ type Topic = {
 
 type Section = {
     uuid: string,
+    interview_uuid: string,
     name: string,
     complete: boolean,
     color: string,

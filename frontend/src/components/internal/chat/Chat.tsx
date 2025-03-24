@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {CountdownTimer} from "@/components/internal/chat/CountdownTimer.tsx";
 import SectionBlock from "@/components/internal/chat/SectionBlock.tsx";
-import {Interview, Section} from "@/lib/interview/interview.ts";
+import {Interview, Question, Section} from "@/lib/interview/interview.ts";
 import {AxiosError} from "axios";
 import {ToastAction} from "@/components/ui/toast.tsx";
 import {useToast} from "@/hooks/use-toast.ts";
@@ -68,9 +68,33 @@ const Chat: React.FC<TProps> = (props: TProps) => {
             {interview === null || activeSections == null ? <Skeleton className="w-full h-[500px] rounded-lg bg-zinc-900" />
                 :
                 <>
-                    <CountdownTimer seconds={interview.seconds_left}/>
+                    {!interview.complete && <CountdownTimer seconds={interview.seconds_left}/>}
                     {activeSections.map((section) => (
-                        <SectionBlock interviewComplete={interviewComplete} key={section.position} section={section} />
+                        <SectionBlock key={section.position} section={section} onGetNextSection={(currentPos: number, actualQuestions: Question[]) => {
+                            for (let i = 0; i < activeSections.length; i++) {
+                                if (activeSections[i].position === currentPos) {
+                                    activeSections[i].questions = actualQuestions;
+                                }
+                            }
+
+
+                            interview?.sections.forEach((section) => {
+                                if (section.position === currentPos+1) {
+
+                                    network.getNextSectionQuestion(section.uuid).then((question: Question) => {
+                                        section.questions.push(question);
+                                        setActiveSections([...activeSections, section]);
+                                    }).catch((err: AxiosError) => {
+                                        toast({
+                                            title: 'Упс! Вопрос новой секции не загрузился ;(',
+                                            description: `Попробуйте перегрузиться. Ошибка сети: [${err.code}] ${err.message}`,
+                                            variant: "destructive",
+                                        });
+                                    })
+                                }
+                            });
+
+                        }} />
                     ))}
                     {
                         interviewComplete &&

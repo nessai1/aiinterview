@@ -10,7 +10,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds }) => {
     const [timeLeft, setTimeLeft] = useState(seconds);
 
     useEffect(() => {
-        if (timeLeft <= 0) return;
+        if (timeLeft <= 0) {
+            // ваще пох, время 2 ночи
+            location.reload();
+        }
         const timer = setInterval(() => {
             setTimeLeft((prev) => Math.max(prev - 1, 0));
         }, 900);

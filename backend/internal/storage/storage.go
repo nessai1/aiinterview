@@ -23,5 +23,6 @@ type Storage interface {
 	GetSection(ctx context.Context, UUID string) (domain.Section, error)
 	GetInterview(ctx context.Context, UUID string, UserUUID string) (domain.Interview, error)
 	CompleteSection(ctx context.Context, UUID string, userUUID string) error
+	StartSection(ctx context.Context, UUID string, userUUID string) error
 	CompleteInterview(ctx context.Context, UUID string, userUUID string, feedback string) error
 }

@@ -76,6 +76,93 @@ func (s *Service) handleAPIAnswerQuestion(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
+func (s *Service) handleAPIQuestionNext(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	interviewID := vars["interviewID"]
+
+	user, ok := r.Context().Value(contextUserKey).(domain.User)
+	if !ok {
+		s.logger.Error("User come to API without user in context", zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	question, err := s.interviewService.NextQuestion(r.Context(), user, interviewID)
+
+	if errors.Is(err, interview.ErrInterviewOver) {
+		w.WriteHeader(205)
+		return
+	}
+
+	if err != nil {
+		s.logger.Error("Error while load next question", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	jsoned, err := json.Marshal(&question)
+	if err != nil {
+		s.logger.Error("Error while marshal question", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	_, err = w.Write(jsoned)
+	if err != nil {
+		s.logger.Error("Cannot write result to user", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+}
+
+func (s *Service) handleAPIQuestionNextSection(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	interviewID := vars["interviewID"]
+
+	user, ok := r.Context().Value(contextUserKey).(domain.User)
+	if !ok {
+		s.logger.Error("User come to API without user in context", zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	question, err := s.interviewService.NextSectionQuestion(r.Context(), user, interviewID)
+	if errors.Is(err, interview.ErrInterviewOver) {
+		w.WriteHeader(205)
+		return
+	}
+
+	if err != nil {
+		s.logger.Error("Error while load next section question", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	jsoned, err := json.Marshal(&question)
+	if err != nil {
+		s.logger.Error("Error while marshal question", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	_, err = w.Write(jsoned)
+	if err != nil {
+		s.logger.Error("Cannot write result to user", zap.Error(err), zap.String("req_uri", r.RequestURI), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+}
+
 func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

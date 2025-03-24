@@ -189,6 +189,99 @@ func (s *Service) AnswerQuestion(ctx context.Context, user domain.User, question
 	return question, nil
 }
 
+func (s *Service) NextQuestion(ctx context.Context, user domain.User, interviewUUID string) (domain.Question, error) {
+	interview, err := s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot get interview: %w", err)
+	}
+
+	if interview.IsComplete {
+		return domain.Question{}, ErrInterviewOver
+	}
+
+	activeSection := interview.GetActiveSection()
+	if activeSection == nil {
+		return domain.Question{}, fmt.Errorf("cannot get active section")
+	}
+
+	activeQuestion := activeSection.GetActiveQuestion()
+	if activeQuestion != nil {
+		return domain.Question{}, fmt.Errorf("active question already exists")
+	}
+
+	questionText, err := s.aiService.Next(ctx, *interview.Thread)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot get next question from AI: %w", err)
+	}
+
+	question, err := s.storage.AddQuestion(ctx, questionText, activeSection.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot add question to storage: %w", err)
+	}
+
+	return question, nil
+}
+
+func (s *Service) NextSectionQuestion(ctx context.Context, user domain.User, interviewUUID string) (domain.Question, error) {
+	interview, err := s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot get interview: %w", err)
+	}
+
+	if interview.IsComplete {
+		return domain.Question{}, ErrInterviewOver
+	}
+
+	activeSection := interview.GetActiveSection()
+	if activeSection == nil {
+		return domain.Question{}, fmt.Errorf("cannot get active section")
+	}
+
+	if activeSection.Position >= len(interview.Sections)-1 {
+		return domain.Question{}, ErrInterviewOver
+	}
+
+	activeQuestion := activeSection.GetActiveQuestion()
+	if activeQuestion != nil {
+		return domain.Question{}, fmt.Errorf("active question already exists")
+	}
+
+	var nextSection *domain.Section
+	for _, section := range interview.Sections {
+		if section.Position == activeSection.Position+1 {
+			nextSection = &section
+			break
+		}
+	}
+
+	if nextSection == nil {
+		return domain.Question{}, fmt.Errorf("cannot get next section on position %d", activeSection.Position+1)
+	}
+
+	err = s.storage.CompleteSection(ctx, activeSection.UUID, user.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot complete section in storage: %w", err)
+	}
+
+	err = s.storage.StartSection(ctx, nextSection.UUID, user.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot start section in storage: %w", err)
+	}
+
+	// TODO: нужно быть уверенным что следующая секция будет с position+1, хер поймешь что выдаст AI
+	questionText, err := s.aiService.Change(ctx, *interview.Thread)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot get next question from AI: %w", err)
+	}
+
+	question, err := s.storage.AddQuestion(ctx, questionText, nextSection.UUID)
+	if err != nil {
+		return domain.Question{}, fmt.Errorf("cannot add question to storage: %w", err)
+	}
+
+	return question, nil
+}
+
 func (s *Service) answerQuestion(ctx context.Context, answer string, question domain.Question, thread domain.ChatThread) (domain.Question, error) {
 	var feedback string
 	var err error

@@ -201,14 +201,15 @@ func (s *PSQLStorage) CreateInterview(ctx context.Context, owner domain.User, ti
 		}
 
 		sections = append(sections, domain.Section{
-			UUID:       sectionUUID,
-			Name:       topic.Name,
-			Grade:      topic.Grade,
-			Position:   i,
-			IsStarted:  false,
-			IsComplete: false,
-			Questions:  make([]domain.Question, 0),
-			Color:      color,
+			UUID:          sectionUUID,
+			InterviewUUID: interviewUUID,
+			Name:          topic.Name,
+			Grade:         topic.Grade,
+			Position:      i,
+			IsStarted:     false,
+			IsComplete:    false,
+			Questions:     make([]domain.Question, 0),
+			Color:         color,
 		})
 	}
 
@@ -243,6 +244,7 @@ func (s *PSQLStorage) GetQuestion(ctx context.Context, UUID string, _ string) (d
 			return domain.Question{}, fmt.Errorf("error while scan question: %w", err)
 		}
 
+		question.UUID = UUID
 		return question, nil
 	}
 
@@ -407,6 +409,15 @@ func (s *PSQLStorage) CompleteSection(ctx context.Context, UUID string, _ string
 	return nil
 }
 
+func (s *PSQLStorage) StartSection(ctx context.Context, UUID string, _ string) error {
+	_, err := s.db.ExecContext(ctx, "UPDATE section SET is_started = true WHERE uuid = $1", UUID)
+	if err != nil {
+		return fmt.Errorf("error while exec complete section query: %w", err)
+	}
+
+	return nil
+}
+
 func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID string) ([]domain.Section, error) {
 	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color, uuid FROM section WHERE interview_uuid = $1", interviewUUID)
 	if err != nil {
@@ -430,6 +441,7 @@ func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID st
 		}
 
 		section.Questions = questions
+		section.InterviewUUID = interviewUUID
 
 		sections = append(sections, section)
 	}
