@@ -16,12 +16,13 @@ type CreateInterviewResponse = {
 
 class Network {
 
-    private serviceUrl: string
-    private isDev: boolean;
+    private serviceUrl: string;
 
     constructor(serviceUrl: string, isDev: boolean) {
         this.serviceUrl = serviceUrl;
-        this.isDev = isDev;
+        if (isDev) {
+            console.log('network: using dev mode');
+        }
     }
 
     async getInterviewList(): Promise<Interview[]> {

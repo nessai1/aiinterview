@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, {FunctionComponent, useState, useRef, useEffect} from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';

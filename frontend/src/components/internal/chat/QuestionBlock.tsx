@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React from "react";
 import './QuestionBlock.css';
 import MessageEditor from "@/components/internal/chat/editor/MessageEditor.tsx";
 import Markdown from "@/components/internal/chat/editor/Markdown.tsx";
@@ -21,8 +21,6 @@ type TProps = {
 
 
 const QuestionBlock: React.FC<TProps> = (props: TProps) => {
-    const [question, setQuestion] = useState<Question>(props.question);
-
     return (
         <div className="questionBlock">
             <div className="question">
@@ -30,25 +28,25 @@ const QuestionBlock: React.FC<TProps> = (props: TProps) => {
                     Вопрос 1:
                 </div>
                 <div className="questionText">
-                    <Markdown>{question.question}</Markdown>
+                    <Markdown>{props.question.question}</Markdown>
                 </div>
                 {
-                    question.done ? (
+                    props.question.done ? (
                         <>
                             <div className="questionMessage">
                                 {
-                                    question.answer === "" ? (
+                                    props.question.answer === "" ? (
                                         <div className="noAnswer">
                                             Ответ не предоставлен
                                         </div>
-                                    ) : <Markdown>{question.answer}</Markdown>
+                                    ) : <Markdown>{props.question.answer}</Markdown>
                                 }
                             </div>
                             <Accordion className="accordion" type="single" collapsible>
                                 <AccordionItem value="item-1">
                                     <AccordionTrigger>Обратная связь ИИ</AccordionTrigger>
                                     <AccordionContent>
-                                        <Markdown>{question.feedback}</Markdown>
+                                        <Markdown>{props.question.feedback}</Markdown>
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
