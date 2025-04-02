@@ -418,6 +418,17 @@ func (s *PSQLStorage) StartSection(ctx context.Context, UUID string, _ string) e
 	return nil
 }
 
+func (s *PSQLStorage) IsUserExists(ctx context.Context, userUUID string) (bool, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT * FROM users WHERE uuid = $1", userUUID)
+	if err != nil {
+		return false, fmt.Errorf("cannot check user in DB: %w", err)
+	}
+
+	defer rows.Close()
+
+	return rows.Next(), nil
+}
+
 func (s *PSQLStorage) getInterviewSections(ctx context.Context, interviewUUID string) ([]domain.Section, error) {
 	rows, err := s.db.QueryContext(ctx, "SELECT name, grade, position, is_started, is_complete, color, uuid FROM section WHERE interview_uuid = $1", interviewUUID)
 	if err != nil {

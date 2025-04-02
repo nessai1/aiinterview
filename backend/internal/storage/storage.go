@@ -25,4 +25,5 @@ type Storage interface {
 	CompleteSection(ctx context.Context, UUID string, userUUID string) error
 	StartSection(ctx context.Context, UUID string, userUUID string) error
 	CompleteInterview(ctx context.Context, UUID string, userUUID string, feedback string) error
+	IsUserExists(ctx context.Context, userUUID string) (bool, error)
 }

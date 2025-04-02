@@ -102,6 +102,8 @@ func NewService(promptStorage *prompt.Storage, logger *zap.Logger, st storage.St
 			return nil, fmt.Errorf("cannot create assistant: %w", err)
 		}
 
+		logger.Info("Successful creation of assistant")
+
 		assistant.ExternalID = externalAssistant.ID
 		err = st.SetAssistant(context.TODO(), assistant)
 		if err != nil {

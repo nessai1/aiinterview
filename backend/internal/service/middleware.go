@@ -44,6 +44,25 @@ func (s *Service) middlewareTokenAuth(next http.Handler) http.Handler {
 			return
 		}
 
+		isUserExists, err := s.storage.IsUserExists(request.Context(), user.UUID)
+		if err != nil {
+			s.logger.Error("Cannot check user exists in DB", zap.Error(err))
+
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if !isUserExists {
+			c.MaxAge = -1
+			http.SetCookie(writer, c)
+			s.logger.Info("User come with nonexists userUUID, clear cookie")
+
+			writer.WriteHeader(http.StatusForbidden)
+			_, err = writer.Write([]byte("access denied"))
+
+			return
+		}
+
 		request = request.WithContext(context.WithValue(request.Context(), contextUserKey, user))
 		s.logger.Debug("authorized request", zap.String("user_uuid", user.UUID), zap.String("ip", request.RemoteAddr), zap.String("uri", request.RequestURI))
 		next.ServeHTTP(writer, request)
