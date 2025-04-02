@@ -102,7 +102,7 @@ func (s *PSQLStorage) GetUserInterviewList(ctx context.Context, userUUID string)
 				Sections:       sections,
 				Feedback:       feedbackStr,
 				SecondsLeft:    secsLeft,
-				IsComplete:     secsLeft <= 0,
+				IsComplete:     secsLeft <= 0 || feedbackStr != "",
 			}
 		}
 	}
@@ -369,7 +369,7 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 		interview.UUID = UUID
 		interview.Timing = time.Duration(timing)
 		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now().UTC()).Seconds())
-		interview.IsComplete = interview.SecondsLeft <= 0
+		interview.IsComplete = interview.SecondsLeft <= 0 || interview.Feedback != ""
 
 		if feedback.Valid {
 			interview.Feedback = feedback.String
