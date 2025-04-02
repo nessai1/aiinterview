@@ -36,16 +36,6 @@ func (s *Service) GetUserInterviewList(ctx context.Context, user domain.User) ([
 		return nil, fmt.Errorf("cannot get user interview list from storage: %w", err)
 	}
 
-	for _, interview := range interviews {
-		if interview.IsComplete && interview.Feedback == "" {
-			// внутри идет закрытие интервью
-			_, err = s.GetInterview(ctx, user, interview.UUID)
-			if err != nil {
-				return nil, fmt.Errorf("cannot close interview while get interview in list load: %w", err)
-			}
-		}
-	}
-
 	return interviews, nil
 }
 
@@ -83,7 +73,6 @@ func (s *Service) CreateInterview(ctx context.Context, user domain.User, title s
 }
 
 func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewUUID string) (domain.Interview, error) {
-
 	interview, err := s.storage.GetInterview(ctx, interviewUUID, user.UUID)
 	if err != nil {
 		return domain.Interview{}, fmt.Errorf("cannot get interview from storage: %w", err)
@@ -96,21 +85,28 @@ func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewU
 		}
 	}
 
+	interview, err = s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+	if err != nil {
+		return domain.Interview{}, fmt.Errorf("cannot get interview after his close")
+	}
+
 	return interview, nil
 }
 
 func (s *Service) closeInterview(ctx context.Context, interview *domain.Interview, user domain.User) error {
-
-	activeSection := interview.GetActiveSection()
-	if activeSection == nil {
-		return fmt.Errorf("cannot get active section for close interview")
+	if interview.Feedback != "" {
+		return nil
 	}
 
-	question := activeSection.GetActiveQuestion()
+	activeSection := interview.GetActiveSection()
+	var activeQuestion *domain.Question
+	if activeSection != nil {
+		activeQuestion = activeSection.GetActiveQuestion()
+	}
 
-	if question != nil {
+	if activeQuestion != nil {
 		// Интервью всегда будет закрыто с одним незаконченным вопросом. Потому что заканчивается оно только по таймеру
-		_, err := s.answerQuestion(ctx, "", *question, *interview.Thread)
+		_, err := s.answerQuestion(ctx, "", *activeQuestion, *interview.Thread)
 		if err != nil {
 			return fmt.Errorf("cannot answer question for close interview: %w", err)
 		}

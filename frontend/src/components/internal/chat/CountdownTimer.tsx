@@ -16,7 +16,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds }) => {
         }
         const timer = setInterval(() => {
             setTimeLeft((prev) => Math.max(prev - 1, 0));
-        }, 900);
+        }, 1000);
         return () => clearInterval(timer);
     }, [timeLeft]);
 

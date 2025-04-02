@@ -21,6 +21,10 @@ type Interview struct {
 }
 
 func (i *Interview) GetActiveSection() *Section {
+	if i.Sections == nil {
+		return nil
+	}
+
 	for _, section := range i.Sections {
 		if !section.IsComplete && section.IsStarted {
 			return &section
