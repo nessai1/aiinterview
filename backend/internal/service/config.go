@@ -15,6 +15,9 @@ type Config struct {
 	Secret         string
 	InvitationCode string
 
+	SSLKey  string
+	SSLCert string
+
 	PSQLAddress string // мне лень делать декомпозицию
 }
 
@@ -63,6 +66,9 @@ func FetchConfigFromEnv() (Config, error) {
 		OpenAI:         proxyConfig,
 		IsDev:          isDev,
 		PSQLAddress:    psqlAddr,
+
+		SSLCert: os.Getenv("SSL_CERT"),
+		SSLKey:  os.Getenv("SSL_KEY"),
 	}
 
 	return config, nil

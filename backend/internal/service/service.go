@@ -78,9 +78,16 @@ func NewService(config Config) (*Service, error) {
 func (s *Service) ListenAndServe() error {
 	s.logger.Info("Service started", zap.Bool("dev", s.config.IsDev), zap.String("address", s.config.Address), zap.String("invitation_code", s.config.InvitationCode))
 
-	err := http.ListenAndServe(s.config.Address, s.buildRouter())
-	if err != nil {
-		return fmt.Errorf("error while listening http: %w", err)
+	if s.config.SSLCert != "" && s.config.SSLKey != "" {
+		err := http.ListenAndServeTLS(s.config.Address, s.config.SSLCert, s.config.SSLKey, s.buildRouter())
+		if err != nil {
+			return fmt.Errorf("error while listening https: %w", err)
+		}
+	} else {
+		err := http.ListenAndServe(s.config.Address, s.buildRouter())
+		if err != nil {
+			return fmt.Errorf("error while listening http: %w", err)
+		}
 	}
 
 	return nil
@@ -102,6 +109,7 @@ func (s *Service) buildRouter() *mux.Router {
 
 	apiRouter.HandleFunc("/interview/list", s.handleAPIGetInterviewList).Methods("GET")
 	apiRouter.HandleFunc("/interview/{interviewID}", s.handleAPIGetInterview).Methods("GET")
+	apiRouter.HandleFunc("/interview/feedback/{interviewID}", s.handleAPICreateFeedback).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/interview", s.handleAPICreateInterview).Methods("POST", "OPTIONS")
 	apiRouter.HandleFunc("/preview", s.handleAPIPreviewMessage).Methods("POST", "OPTIONS")
 
