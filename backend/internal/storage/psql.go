@@ -369,11 +369,12 @@ func (s *PSQLStorage) GetInterview(ctx context.Context, UUID string, UserUUID st
 		interview.UUID = UUID
 		interview.Timing = time.Duration(timing)
 		interview.SecondsLeft = int(interview.StartTimestamp.Add(time.Duration(int(time.Second) * timing)).Sub(time.Now().UTC()).Seconds())
-		interview.IsComplete = interview.SecondsLeft <= 0 || interview.Feedback != ""
 
 		if feedback.Valid {
 			interview.Feedback = feedback.String
 		}
+
+		interview.IsComplete = interview.Feedback != ""
 
 		if thread != "" {
 			strs := strings.Split(thread, "||")

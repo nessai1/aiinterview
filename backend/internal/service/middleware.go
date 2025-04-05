@@ -77,7 +77,7 @@ func (s *Service) corsAllowMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", origin)
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept")
-		w.Header().Set("Access-Control-Allow-Credentials", "true") // ✅ Теперь работает
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 		// Обрабатываем preflight-запросы
 		if r.Method == "OPTIONS" {

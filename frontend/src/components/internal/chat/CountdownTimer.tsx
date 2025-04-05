@@ -4,19 +4,23 @@ import { cn } from "@/lib/utils"; // Если используешь shadcn util
 
 interface CountdownTimerProps {
     seconds: number;
+    onEnd: () => void;
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds }) => {
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ seconds, onEnd }) => {
     const [timeLeft, setTimeLeft] = useState(seconds);
+    const [endCalled, setEndCalled] = useState<boolean>(false);
 
     useEffect(() => {
-        if (timeLeft <= 0) {
-            // ваще пох, время 2 ночи
-            location.reload();
+        if (timeLeft <= 0 && !endCalled) {
+            setEndCalled(true);
+            onEnd();
         }
+
         const timer = setInterval(() => {
             setTimeLeft((prev) => Math.max(prev - 1, 0));
         }, 1000);
+
         return () => clearInterval(timer);
     }, [timeLeft]);
 

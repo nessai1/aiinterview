@@ -19,10 +19,23 @@ const Chat: React.FC<TProps> = (props: TProps) => {
     const [ interview, setInterview ] = useState<Interview|null>(null)
 
     const [activeSections, setActiveSections] = useState<Section[]|null>();
-
     const [interviewComplete, setInterviewComplete] = useState(false);
 
     const feedbackRef = useRef<HTMLDivElement | null>(null);
+    const cdh = (interviewUUID: string) => {
+        network.createInterviewFeedback(interviewUUID).then(() => {
+            location.reload();
+        }).catch((err: AxiosError) => {
+            toast({
+                title: 'Не могу закончить интервью',
+                description: `Ошибка сети: [${err.code}] ${err.message}`,
+                action: (
+                    <ToastAction altText="Goto schedule to undo" onClick={() => cdh(interviewUUID)}>Повторить</ToastAction>
+                ),
+                variant: "destructive",
+            });
+        });
+    };
 
     const retry = () => {
         network.loadInterview(props.interviewId).then((loadedInterview: Interview) => {
@@ -68,7 +81,13 @@ const Chat: React.FC<TProps> = (props: TProps) => {
             {interview === null || activeSections == null ? <Skeleton className="w-full h-[500px] rounded-lg bg-zinc-900" />
                 :
                 <>
-                    {!interview.complete && <CountdownTimer seconds={interview.seconds_left}/>}
+                    {!interview.complete && <CountdownTimer onEnd={() => {
+                        const uuid = interview?.uuid;
+                        if (uuid)
+                        {
+                            cdh(uuid);
+                        }
+                    }} seconds={interview.seconds_left}/>}
                     {activeSections.map((section) => (
                         <SectionBlock key={section.position} section={section} onGetNextSection={(currentPos: number, actualQuestions: Question[]) => {
                             for (let i = 0; i < activeSections.length; i++) {

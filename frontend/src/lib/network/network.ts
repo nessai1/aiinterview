@@ -174,6 +174,22 @@ class Network {
         return data;
     }
 
+    async createInterviewFeedback(interviewUUID: string): Promise<string> {
+        const {data, status} = await axios.post<string>(
+            this.serviceUrl + '/interview/feedback/' + interviewUUID,
+            interviewUUID,
+            {
+                withCredentials: true,
+            }
+        )
+
+        if (status != 200 && status != 201) {
+            throw new Error("Invalid code while preview message: expeted 200/201, got " + status);
+        }
+
+        return data;
+    }
+
     async previewMessage(message: string): Promise<string> {
         const {data, status} = await axios.post<string>(
             this.serviceUrl + '/api/preview',

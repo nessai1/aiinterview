@@ -78,24 +78,24 @@ func (s *Service) GetInterview(ctx context.Context, user domain.User, interviewU
 		return domain.Interview{}, fmt.Errorf("cannot get interview from storage: %w", err)
 	}
 
-	if interview.IsComplete && interview.Feedback == "" {
-		err := s.closeInterview(ctx, &interview, user)
+	if interview.SecondsLeft <= 0 && interview.Feedback == "" {
+		_, err := s.CloseInterview(ctx, &interview, user)
 		if err != nil {
 			return domain.Interview{}, fmt.Errorf("cannot close interview while get interview: %w", err)
 		}
-	}
 
-	interview, err = s.storage.GetInterview(ctx, interviewUUID, user.UUID)
-	if err != nil {
-		return domain.Interview{}, fmt.Errorf("cannot get interview after his close")
+		interview, err = s.storage.GetInterview(ctx, interviewUUID, user.UUID)
+		if err != nil {
+			return domain.Interview{}, fmt.Errorf("cannot get interview after his close")
+		}
 	}
 
 	return interview, nil
 }
 
-func (s *Service) closeInterview(ctx context.Context, interview *domain.Interview, user domain.User) error {
+func (s *Service) CloseInterview(ctx context.Context, interview *domain.Interview, user domain.User) (string, error) {
 	if interview.Feedback != "" {
-		return nil
+		return interview.Feedback, nil
 	}
 
 	activeSection := interview.GetActiveSection()
@@ -108,28 +108,28 @@ func (s *Service) closeInterview(ctx context.Context, interview *domain.Intervie
 		// Интервью всегда будет закрыто с одним незаконченным вопросом. Потому что заканчивается оно только по таймеру
 		_, err := s.answerQuestion(ctx, "", *activeQuestion, *interview.Thread)
 		if err != nil {
-			return fmt.Errorf("cannot answer question for close interview: %w", err)
+			return "", fmt.Errorf("cannot answer question for close interview: %w", err)
 		}
 	}
 
 	feedback, err := s.aiService.Feedback(ctx, *interview.Thread)
 	if err != nil {
-		return fmt.Errorf("cannot get feedback for close interview: %w", err)
+		return "", fmt.Errorf("cannot get feedback for close interview: %w", err)
 	}
 
 	feedbackParsed, err := s.messageParser.Parse([]byte(feedback))
 	if err != nil {
-		return fmt.Errorf("cannot parse feedback: %w", err)
+		return "", fmt.Errorf("cannot parse feedback: %w", err)
 	}
 
 	feedback = string(feedbackParsed)
 
 	err = s.storage.CompleteInterview(ctx, interview.UUID, user.UUID, feedback)
 	if err != nil {
-		return fmt.Errorf("cannot complete interview in storage: %w", err)
+		return "", fmt.Errorf("cannot complete interview in storage: %w", err)
 	}
 
-	return nil
+	return feedback, nil
 }
 
 // Flow section
@@ -153,6 +153,10 @@ func (s *Service) AnswerQuestion(ctx context.Context, user domain.User, question
 	interview, err := s.storage.GetInterview(ctx, question.InterviewUUID, user.UUID)
 	if err != nil {
 		return domain.Question{}, fmt.Errorf("cannot get interview from storage: %w", err)
+	}
+
+	if interview.IsComplete {
+		return domain.Question{}, ErrInterviewOver
 	}
 
 	if interview.Thread == nil {

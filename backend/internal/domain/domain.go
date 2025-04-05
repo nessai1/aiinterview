@@ -13,7 +13,7 @@ type Interview struct {
 	SecondsLeft    int           `json:"seconds_left"`
 	StartTimestamp time.Time     `json:"start_timestamp"`
 
-	IsComplete bool `json:"complete"` // computed -> secondsLeft <= 0
+	IsComplete bool `json:"complete"` // feedback != ""
 
 	Feedback string      `json:"feedback,omitempty"`
 	Sections []Section   `json:"sections"`

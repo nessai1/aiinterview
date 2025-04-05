@@ -46,6 +46,10 @@ func (s *Service) handleAPIAnswerQuestion(w http.ResponseWriter, r *http.Request
 
 	question, err := s.interviewService.AnswerQuestion(r.Context(), user, answerRequest.QuestionUUID, answerRequest.Answer)
 
+	if errors.Is(err, interview.ErrInterviewOver) {
+		w.WriteHeader(205)
+	}
+
 	if err == nil || errors.Is(err, interview.ErrSectionOver) {
 		code := 200
 		if errors.Is(err, interview.ErrSectionOver) {
@@ -199,5 +203,53 @@ func (s *Service) handleAPIGetInterview(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return
+	}
+}
+
+func (s *Service) handleAPICreateFeedback(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	interviewID := vars["interviewID"]
+	user, ok := r.Context().Value(contextUserKey).(domain.User)
+	if !ok {
+		s.logger.Error("User come to API without user in context", zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	s.logger.Debug("Load interview", zap.String("interview_uuid", interviewID), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
+
+	i, err := s.interviewService.GetInterview(r.Context(), user, interviewID)
+	if err != nil {
+		s.logger.Error("Error while load interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("req_uri", r.RequestURI))
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	if i.IsComplete {
+		s.logger.Debug("Interview get feedback: already completed", zap.String("user_uuid", user.UUID), zap.String("interview_uuid", interviewID))
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write([]byte(i.Feedback))
+		if err != nil {
+			s.logger.Error("Cannot write feedback to user", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("interview_uuid", interviewID))
+		}
+
+		return
+	}
+
+	feedback, err := s.interviewService.CloseInterview(r.Context(), &i, user)
+	if err != nil {
+		s.logger.Error("Cannot close interview", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("interview_uuid", interviewID))
+
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	_, err = w.Write([]byte(feedback))
+	if err != nil {
+		s.logger.Error("Cannot write feedback to user", zap.Error(err), zap.String("user_uuid", user.UUID), zap.String("interview_uuid", interviewID))
 	}
 }
