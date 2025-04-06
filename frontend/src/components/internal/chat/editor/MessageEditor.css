@@ -151,3 +151,15 @@
 .button-decline:active {
     background-color: #ec3a3a;
 }
+
+@media screen {
+    @media (max-width: 768px) {
+        .icon-button {
+            display: none;
+        }
+
+        .tab-list {
+            font-size: 12px;
+        }
+    }
+}
